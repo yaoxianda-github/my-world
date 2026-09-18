@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>《老街新生》微信小游戏 · 浏览器预览</title>
+<style>
+  body{margin:0;background:#2a2018;display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif}
+  #wrap{position:relative;box-shadow:0 0 40px rgba(0,0,0,.5);border-radius:14px;overflow:hidden}
+  canvas{display:block;width:375px;height:667px;background:#F6EFE3}
+  .tip{position:fixed;left:50%;transform:translateX(-50%);bottom:8px;color:#9a8a78;font-size:12px}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="375" height="667"></canvas></div>
+<div class="tip">浏览器预览（微信真机请用微信开发者工具打开本目录）</div>
+
+<script>
+// ===== wx polyfill (仅供浏览器预览; 真机走微信原生 wx) =====
+(function () {
+  var canvas = document.getElementById("game");
+  var wxPoly = {
+    createCanvas: function () { return canvas; },
+    getSystemInfoSync: function () { return { windowWidth: 375, windowHeight: 667, pixelRatio: 1 }; },
+    onTouchStart: function (fn) { canvas.addEventListener("touchstart", function (e) { e.preventDefault(); var t = e.touches[0]; if (t) fn({ touches: [{ clientX: t.clientX - canvas.getBoundingClientRect().left, clientY: t.clientY - canvas.getBoundingClientRect().top }] }); }, { passive: false }); },
+    onTouchMove: function (fn) { canvas.addEventListener("touchmove", function (e) { e.preventDefault(); var t = e.touches[0]; if (t) fn({ touches: [{ clientX: t.clientX - canvas.getBoundingClientRect().left, clientY: t.clientY - canvas.getBoundingClientRect().top }] }); }, { passive: false }); },
+    onTouchEnd: function (fn) { canvas.addEventListener("touchend", function (e) { e.preventDefault(); var t = e.changedTouches[0]; if (t) fn({ changedTouches: [{ clientX: t.clientX - canvas.getBoundingClientRect().left, clientY: t.clientY - canvas.getBoundingClientRect().top }] }); }, { passive: false }); },
+    onHide: function (fn) { document.addEventListener("visibilitychange", function () { if (document.hidden) fn(); }); },
+    onShow: function (fn) { document.addEventListener("visibilitychange", function () { if (!document.hidden) fn(); }); },
+    setStorageSync: function (k, v) { localStorage.setItem(k, v); },
+    getStorageSync: function (k) { return JSON.parse(localStorage.getItem(k) || "null"); }
+  };
+  window.wx = wxPoly;
+  // 鼠标拖拽预览 (桌面用)
+  var dragging = false, lastY = 0;
+  canvas.addEventListener("mousedown", function (e) { dragging = true; lastY = e.clientY; wxPoly.onTouchStart({ touches: [{ clientX: e.clientX - canvas.getBoundingClientRect().left, clientY: e.clientY - canvas.getBoundingClientRect().top }] }); });
+  document.addEventListener("mousemove", function (e) { if (!dragging) return; var dy = e.clientY - lastY; lastY = e.clientY; wxPoly.onTouchMove({ touches: [{ clientX: e.clientX - canvas.getBoundingClientRect().left, clientY: e.clientY - canvas.getBoundingClientRect().top }] }); });
+  document.addEventListener("mouseup", function (e) { if (!dragging) return; dragging = false; wxPoly.onTouchEnd({ changedTouches: [{ clientX: e.clientX - canvas.getBoundingClientRect().left, clientY: e.clientY - canvas.getBoundingClientRect().top }] }); });
+})();
+</script>
+<script src="core.js"></script>
+<script src="render.js"></script>
+<script>
+// ===== 浏览器入口 (等价 game.js 逻辑, 但浏览器用 script 加载) =====
+(function () {
+  var Core = window.Core, Render = window.Render;
+  var canvas = wx.createCanvas();
+  var W = canvas.width, H = canvas.height;
+  var ctx = canvas.getContext("2d");
+
+  Core.offlineGain();
+
+  var last = Date.now();
+  function loop() {
+    var now = Date.now();
+    var dt = Math.min((now - last) / 1000, 5);
+    last = now;
+    Core.tick(dt);
+    Render.draw(ctx, Core, W, H);
+    requestAnimationFrame(loop);
+  }
+  loop();
+  setInterval(function () { Core.save(); }, 5000);
+  window.addEventListener("beforeunload", function () { Core.save(); });
+})();
+</script>
+</body>
+</html>
