@@ -64,6 +64,16 @@ PARAMS = {
     "NIGHT_OFF_H": 8.0,         # 每游戏日夜间离线小时(示例)
     "MAX_UPGRADES_PER_DAY": 10, # 每日最多升级次数(模拟玩家手动操作上限,示例)
     "T_DAY_MAX_H": 8.0,         # 游戏日现实最大时长(强制结算阈值)
+    # 全局增益 G 构成 (§5.1: G=(1+Σadditive)×Π(1+multiplicative), min(g_max))
+    "promo_buff": 0.5,          # P0 宣传 buff (global_constants 逆向)
+    "g_max": 10.0,              # 全局增益上限 (global_constants 逆向)
+    # 策略卡 (card_config.xlsx 逆向; act_day=示例玩家获得日, 待实机校准)
+    "CARDS": [
+        {"id": 1001, "type": "additive",      "target": "traffic_all", "value": 0.15, "act_day": 3},
+        {"id": 1002, "type": "additive",      "target": "spend_all",   "value": 0.20, "act_day": 5},
+        {"id": 1003, "type": "multiplicative","target": "traffic_all", "value": 0.25, "act_day": 8},
+        {"id": 1004, "type": "additive",      "target": "rent_reduce", "value": 0.10, "act_day": 10},
+    ],
     # 健康度阈值 (§8.1)
     "PB_MIN": 30,          # 回本时间下限(秒) — 过低=升级太廉价
     "PB_MAX": 30*60,       # 回本时间上限(秒) — 过高=卡关
@@ -285,21 +295,34 @@ def simulate_progress(p):
           f"每天在线 {p['DAY_PLAY_H']}h + 离线 {p['NIGHT_OFF_H']}h, "
           f"η_off={p['eta_off']}, G={p['G']})")
     print("=" * 82)
-    print(f"{'Day':>4} {'解锁':>6} {'总秒产出':>10} {'金币余额':>12} "
+    print(f"{'Day':>4} {'解锁':>6} {'G':>5} {'总秒产出':>10} {'金币余额':>12} "
           f"{'繁荣值':>10} {'租金':>10} {'压力比':>8}")
-    print("-" * 82)
+    print("-" * 88)
 
-    def rate_total():
-        return sum(shop_rate(i) for i, s in enumerate(st) if s["on"])
+    def rate_total(g):
+        return sum(shop_rate(i, g) for i, s in enumerate(st) if s["on"])
 
-    def shop_rate(i):
+    def shop_rate(i, g):
         _, T0, S0, a_t, r_s, _, _, _, _ = shops[i]
         L = st[i]["lv"]
-        return T0 * (1 + a_t * (L - 1)) * S0 * (r_s ** (L - 1)) / 3600.0 * p["G"]
+        return T0 * (1 + a_t * (L - 1)) * S0 * (r_s ** (L - 1)) / 3600.0 * g
 
     def shop_cost(i):
         _, _, _, _, _, C0, r_c, _, _ = shops[i]
         return C0 * (r_c ** (st[i]["lv"] - 1))
+
+    def g_at(day):
+        """当日全局增益 G 与租金减免率 (§5.1: 加区先加、乘区后乘、g_max截断)"""
+        add, mult, rent_red = p["promo_buff"], 0.0, 0.0
+        for c in p["CARDS"]:
+            if day >= c["act_day"]:
+                if c["target"] == "rent_reduce":
+                    rent_red += c["value"]
+                elif c["type"] == "multiplicative":
+                    mult += c["value"]
+                else:
+                    add += c["value"]
+        return min((1 + add) * (1 + mult), p["g_max"]), rent_red
 
     def prosp_gain(i, lv):
         """该店升到 lv 级时的繁荣贡献 (按区间表, 店3-4 为示例)"""
@@ -309,10 +332,11 @@ def simulate_progress(p):
         return 5
 
     for day in range(1, p["SIM_DAYS"] + 1):
-        day_start_rate = rate_total()
+        g_eff, rent_red = g_at(day)
+        day_start_rate = rate_total(g_eff)
         dt_on = p["DAY_PLAY_H"] * 3600
         dt_off = min(p["NIGHT_OFF_H"] * 3600, p["t_off_max"]) * p["eta_off"]
-        coins += rate_total() * (dt_on + dt_off)
+        coins += rate_total(g_eff) * (dt_on + dt_off)
         # 升级: 按成本从低到高, 金币够就升 (受每日操作上限约束)
         up_count = 0
         while up_count < p["MAX_UPGRADES_PER_DAY"]:
@@ -340,8 +364,9 @@ def simulate_progress(p):
                         "ad_double": "次广告翻倍", "card_draw": "次抽卡"}.get(rtype, "")
                 print(f"   ▸ Day{day} 繁荣{prosperity:.0f} 触发里程碑"
                       f"[{thr}]: +{rval}{unit}")
-        # 租金(含欠租优先抵扣)
-        rt = rent(day, p)
+        # 租金(含欠租优先抵扣 + 策略卡租金减免)
+        rt = rent(day, p) * (1 - rent_red)
+        base_rent = rent(day, p)
         if owe > 0:
             rt += owe
             owe = 0.0
@@ -352,11 +377,11 @@ def simulate_progress(p):
             coins = 0.0
         # 输出
         daily_income = day_start_rate * dt_on
-        ratio = rent(day, p) / daily_income if daily_income > 0 else float("inf")
+        ratio = base_rent / daily_income if daily_income > 0 else float("inf")
         unlocked = sum(1 for s in st if s["on"])
-        print(f"{day:>4} {unlocked:>4}家 {fmt_num(rate_total()):>10} "
+        print(f"{day:>4} {unlocked:>4}家 {g_eff:>5.2f} {fmt_num(rate_total(g_eff)):>10} "
               f"{fmt_num(coins):>12} {prosperity:>10.0f} "
-              f"{fmt_num(rent(day,p)):>10} {ratio*100:>6.1f}%")
+              f"{fmt_num(rt):>10} {ratio*100:>6.1f}%")
     # 诊断
     print("-" * 82)
     if any(v for v in unlock_days.values()):
