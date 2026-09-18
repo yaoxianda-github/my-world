@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>《老街新生》低保真原型</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23B85C3C'/%3E%3Cpath d='M8 15L16 8l8 7v11a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2z' fill='%23F6EFE3'/%3E%3Crect x='13' y='19' width='6' height='7' fill='%238A5A33'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --paper:#F6EFE3; --paper2:#FBF6EC; --ink:#46352A; --ink2:#7A6A58;
+    --brown:#8A5A33; --orange:#D97E3D; --brick:#B85C3C; --green:#7A8F6E;
+    --gold:#C9A227; --line:#D8C8B2; --card:#FFFDF8; --red:#C0392B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#EFE6D6;color:var(--ink);font-family:-apple-system,'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;line-height:1.5}
+  .page{max-width:1180px;margin:0 auto;padding:24px 16px 60px}
+  /* ===== 页头 ===== */
+  .page-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px;margin-bottom:18px}
+  .page-head h1{font-size:22px;font-weight:800;color:var(--brick);letter-spacing:.5px}
+  .page-head .sub{font-size:13px;color:var(--ink2)}
+  .badge{display:inline-block;background:var(--brick);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:6px;vertical-align:2px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:10px;font-size:12px;color:var(--ink2)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+  /* ===== 布局 ===== */
+  .layout{display:grid;grid-template-columns:430px 1fr;gap:22px;align-items:start}
+  @media (max-width:900px){.layout{grid-template-columns:1fr}}
+  /* ===== 手机原型 ===== */
+  .phone-wrap{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(90,60,30,.08)}
+  .phone-wrap .cap{font-size:13px;font-weight:700;color:var(--brown);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+  .phone{width:390px;max-width:100%;height:760px;margin:0 auto;background:#FFFDF8;border:2px solid var(--ink);border-radius:22px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .phone .notch{height:22px;background:var(--ink);color:#EADFCB;font-size:10px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex:none}
+  .app{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  /* 主界面 */
+  .view-main{position:absolute;inset:0;display:flex;flex-direction:column}
+  .topbar{background:linear-gradient(180deg,#E9D9BE,#F4E9D4);border-bottom:1px solid var(--line);padding:8px 10px;flex:none}
+  .res-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .res{display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:14px;background:rgba(255,253,248,.7);border:1px solid var(--line);border-radius:14px;padding:2px 9px}
+  .res svg{width:14px;height:14px;flex:none}
+  .res .small{font-weight:500;color:var(--ink2);font-size:11px;margin-left:1px}
+  .goal-row{display:flex;align-items:center;gap:8px;margin-top:7px}
+  .goal-label{font-size:11px;color:var(--ink2);white-space:nowrap}
+  .goal-track{flex:1;height:10px;background:#E4D5BC;border-radius:6px;overflow:hidden;border:1px solid #D9C7A8}
+  .goal-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--gold));width:75%}
+  .goal-num{font-size:11px;font-weight:700;color:var(--brown)}
+  .btn-settle{background:var(--orange);color:#fff;font-size:12px;font-weight:700;border:none;border-radius:14px;padding:5px 12px;cursor:pointer;position:relative;white-space:nowrap}
+  .btn-settle .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+  /* 街道 */
+  .street{flex:1;overflow-x:auto;overflow-y:hidden;position:relative;background:linear-gradient(180deg,#F0E3CA 0%,#EAD9B8 60%,#E3CDA4 100%)}
+  .street-inner{display:flex;gap:12px;padding:18px 14px;height:100%;align-items:center;min-width:max-content}
+  .street-hint{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:10px;color:var(--ink2);background:rgba(246,239,227,.75);letter-spacing:2px}
+  .shop{width:118px;flex:none;background:var(--card);border:1.5px solid var(--brown);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .12s;text-align:center}
+  .shop:active{transform:scale(.96)}
+  .shop.locked{opacity:.75;border-style:dashed;cursor:default}
+  .shop .roof{height:26px;background:var(--brick);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .shop .body{padding:8px 6px 10px}
+  .shop .sname{font-size:13px;font-weight:800;color:var(--ink);white-space:nowrap}
+  .shop .smeta{font-size:10px;color:var(--ink2);margin-top:3px;line-height:1.5}
+  .shop .slevel{font-size:10px;color:var(--gold);font-weight:700}
+  .shop .income{font-size:11px;color:var(--orange);font-weight:700;margin-top:4px}
+  .shop .lock-tag{font-size:10px;color:var(--ink2);font-weight:700}
+  .shop .bld{height:5px;background:#E4D5BC;border-radius:3px;margin-top:6px;overflow:hidden}
+  .shop .bld i{display:block;height:100%;background:var(--green);width:0%}
+  /* 底部功能栏 */
+  .dock{flex:none;background:#FFF9EE;border-top:1.5px solid var(--line);display:flex;justify-content:space-around;padding:6px 2px 8px}
+  .dock-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--ink2);cursor:pointer;background:none;border:none;padding:2px 6px;border-radius:8px;min-width:44px;min-height:44px;justify-content:center}
+  .dock-item:active{background:#F0E3CA}
+  .dock-item.active{color:var(--brick);font-weight:700}
+  .dock-item svg{width:18px;height:18px}
+  /* 通用面板/弹窗 */
+  .overlay{position:absolute;inset:0;background:rgba(70,53,42,.45);display:flex;align-items:center;justify-content:center;z-index:40}
+  .sheet{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-height:86%;overflow-y:auto;padding:16px;animation:up .18s ease-out}
+  @keyframes up{from{transform:translateY(30px);opacity:.5}to{transform:none;opacity:1}}
+  .popup{background:var(--card);border-radius:16px;width:88%;max-width:340px;padding:18px;box-shadow:0 10px 30px rgba(50,30,10,.3);animation:pop .18s ease-out}
+  @keyframes pop{from{transform:scale(.9);opacity:.5}to{transform:none;opacity:1}}
+  .popup h3{font-size:17px;color:var(--brick);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+  .popup .p-sub{font-size:12px;color:var(--ink2);margin-bottom:12px}
+  .row2{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line)}
+  .row2:last-child{border-bottom:none}
+  .row2 b{font-weight:800;font-variant-numeric:tabular-nums}
+  .big-num{font-size:24px;font-weight:900;color:var(--orange);text-align:center;margin:6px 0;font-variant-numeric:tabular-nums}
+  .btn{display:block;width:100%;text-align:center;border:none;border-radius:12px;padding:11px;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px}
+  .btn:active{transform:scale(.98)}
+  .btn.primary{background:var(--orange);color:#fff}
+  .btn.gold{background:var(--gold);color:#fff}
+  .btn.ghost{background:#F0E3CA;color:var(--brown)}
+  .btn.disabled{background:#E0D5C2;color:#A99A82;cursor:not-allowed}
+  .btn.sm{font-size:13px;padding:8px;margin-top:8px}
+  .toast{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);background:rgba(70,53,42,.92);color:#fff;font-size:13px;padding:8px 16px;border-radius:20px;z-index:60;animation:pop .15s ease-out}
+  /* 冒字 */
+  .float-num{position:absolute;font-size:14px;font-weight:900;color:var(--gold);pointer-events:none;animation:float 1.1s ease-out forwards;text-shadow:0 1px 0 #fff}
+  @keyframes float{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-34px)}}
+  /* 店铺面板 */
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .panel-head h3{font-size:17px;color:var(--brick)}
+  .close-x{background:none;border:none;font-size:20px;color:var(--ink2);cursor:pointer;min-width:44px;min-height:44px}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .stat{background:#F5EBD8;border:1px solid var(--line);border-radius:10px;padding:9px}
+  .stat .k{font-size:11px;color:var(--ink2)}
+  .stat .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+  .level-bar{font-size:12px;color:var(--ink2);margin-bottom:10px}
+  .build-zone{background:#F5EBD8;border:1px dashed var(--brown);border-radius:10px;padding:10px;margin-top:10px}
+  .build-zone .bt{font-size:13px;font-weight:700;color:var(--brown);margin-bottom:8px}
+  .bprogress{height:10px;background:#E4D5BC;border-radius:6px;overflow:hidden;margin:8px 0}
+  .bprogress i{display:block;height:100%;background:var(--green);width:0%}
+  .hold-tip{font-size:11px;color:var(--ink2);text-align:center}
+  /* 策略卡 */
+  .cards-page{position:absolute;inset:0;background:var(--paper);display:flex;flex-direction:column;z-index:30}
+  .cards-head{background:var(--card);border-bottom:1px solid var(--line);padding:12px;display:flex;justify-content:space-between;align-items:center;flex:none}
+  .cards-head h3{font-size:16px;color:var(--brick)}
+  .cards-body{flex:1;overflow-y:auto;padding:14px}
+  .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ccard{background:var(--card);border:1.5px solid var(--brown);border-radius:12px;padding:11px;position:relative}
+  .ccard .cname{font-size:14px;font-weight:800}
+  .ccard .ceff{font-size:12px;color:var(--orange);font-weight:700;margin:3px 0 6px}
+  .ccard .cdesc{font-size:11px;color:var(--ink2);line-height:1.5}
+  .ccard .cstate{position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;padding:1px 7px;border-radius:9px}
+  .ccard .cstate.owned{background:#EAF0E3;color:var(--green)}
+  .ccard .cstate.new{background:#FDEBE2;color:var(--brick)}
+  .ccard .switch{position:absolute;bottom:8px;right:8px;font-size:10px;color:var(--ink2);cursor:pointer;border:1px solid var(--line);border-radius:9px;padding:1px 7px;background:#FFFDF8}
+  .ccard .switch.off{color:#A99A82}
+  .draw-zone{background:var(--card);border:1.5px dashed var(--orange);border-radius:12px;padding:13px;margin-top:14px;text-align:center}
+  .draw-zone .dtitle{font-size:13px;font-weight:800;color:var(--brown);margin-bottom:6px}
+  .draw-zone .dmeta{font-size:11px;color:var(--ink2);margin-bottom:10px}
+  .pity{font-size:11px;color:var(--gold);font-weight:700;margin-top:8px}
+  .card-flip{animation:flip .5s ease-out}
+  @keyframes flip{0%{transform:rotateY(90deg);opacity:0}100%{transform:none;opacity:1}}
+  /* ===== 信息图区 ===== */
+  .diagram{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px}
+  .diagram h2{font-size:15px;font-weight:800;color:var(--brown);margin-bottom:2px}
+  .diagram .d-sub{font-size:12px;color:var(--ink2);margin-bottom:12px}
+  .dnote{font-size:11px;color:var(--ink2);margin-top:8px;line-height:1.6}
+  .flow-row{display:flex;flex-wrap:wrap;gap:6px 0;align-items:center;font-size:12px}
+  .fnode{border:1.5px solid var(--brown);border-radius:9px;padding:6px 10px;background:#FBF6EC;font-weight:700;color:var(--ink)}
+  .fnode.lvl{background:#FDEBE2;border-color:var(--brick);color:var(--brick)}
+  .fnode.special{background:#EAF0E3;border-color:var(--green);color:#4E6B45}
+  .fnode.locked{background:#F0E3CA;border-style:dashed;color:var(--ink2)}
+  .farrow{color:#B09B7E;font-weight:900;margin:0 5px}
+  .fqueue{font-size:11px;color:var(--ink2);background:#F5EBD8;border-radius:6px;padding:3px 8px;margin-left:4px}
+  .sflow{display:flex;flex-direction:column;gap:9px;font-size:13px}
+  .sflow .line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .snode{background:#FBF6EC;border:1.5px solid var(--brown);border-radius:9px;padding:6px 10px;font-weight:700}
+  .snode.main{background:var(--brick);color:#fff;border-color:var(--brick)}
+  .sarrow{color:#B09B7E;font-weight:900}
+  .tag{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+  .tag.p0{background:#FDEBE2;color:var(--brick)}
+  .tag.p1{background:#EFE8D8;color:#8A7A5F}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-head">
+    <h1>《老街新生》低保真原型<span class="badge">M0 · v0.1</span></h1>
+    <div class="sub">交互原型（手机框内可点）+ 弹窗层级图 + 界面跳转流程 · 数值为示例占位</div>
+    <div class="legend">
+      <span><i class="sw" style="background:#B85C3C"></i> 店铺/重点</span>
+      <span><i class="sw" style="background:#D97E3D"></i> 主操作</span>
+      <span><i class="sw" style="background:#7A8F6E"></i> 进度/增益</span>
+      <span><i class="sw" style="background:#C9A227"></i> 收益</span>
+      <span><i class="sw" style="background:#F0E3CA"></i> 锁定/占位</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- ===== 手机原型 ===== -->
+    <section class="phone-wrap">
+      <div class="cap"><span>交互原型（点击试试）</span><span style="font-weight:400">重置</span></div>
+      <div class="phone">
+        <div class="notch"><span>9:41</span><span>模拟状态栏</span></div>
+        <div id="app" class="app"></div>
+      </div>
+    </section>
+
+    <!-- ===== 信息图区 ===== -->
+    <aside class="diagrams">
+      <section class="diagram">
+        <h2>一、弹窗层级 / 互斥关系图</h2>
+        <div class="d-sub">对应 PRD §7.5 + 附录 B · 同一时刻仅展示一个弹窗</div>
+        <div class="flow-row">
+          <div class="fnode special">存档冲突</div>
+          <div class="fnode special">防沉迷时长锁</div>
+          <div class="farrow">优先于一切</div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="flow-row">
+          <div class="fnode lvl">1 离线收益</div><div class="farrow">→</div>
+          <div class="fnode lvl">2 每日结算</div><div class="farrow">→</div>
+          <div class="fnode lvl">3 繁荣里程碑</div><div class="farrow">→</div>
+          <div class="fnode lvl">4 任务领奖</div><div class="farrow">→</div>
+          <div class="fnode lvl">5 运营活动</div>
+        </div>
+        <div style="height:10px"></div>
+        <div class="dnote">规则：特级弹窗无条件优先；其余按 1→5 优先级排队，同一时刻仅展示一个；当前弹窗关闭后自动弹出队列中下一个（原型中点击「收下」可观察队列演示）。</div>
+      </section>
+
+      <section class="diagram">
+        <h2>二、核心界面跳转流程图</h2>
+        <div class="d-sub">对应 PRD §8.2 核心界面清单 · 点击主线为主，弹窗单向关闭</div>
+        <div class="sflow">
+          <div class="line"><span class="snode main">主经营界面</span><span class="sarrow">→</span><span class="snode">店铺升级面板<span class="tag p0">P0</span></span><span class="sarrow">→</span><span class="snode">修建/长按加速</span></div>
+          <div class="line"><span class="sarrow" style="margin-left:14px">→</span><span class="snode">离线收益弹窗<span class="tag p0">P0</span></span><span class="sarrow">→</span><span class="snode">广告翻倍 / 收下</span></div>
+          <div class="line"><span class="sarrow" style="margin-left:14px">→</span><span class="snode">每日结算弹窗<span class="tag p0">P0</span></span><span class="sarrow">→</span><span class="snode">推进下一天</span></div>
+          <div class="line"><span class="sarrow" style="margin-left:14px">→</span><span class="snode">繁荣里程碑弹窗<span class="tag p1">P1</span></span></div>
+          <div class="line"><span class="snode" style="margin-left:14px">策略卡入口</span><span class="sarrow">→</span><span class="snode">策略卡界面<span class="tag p1">P1</span></span><span class="sarrow">→</span><span class="snode">抽卡 / 刷新保底</span></div>
+          <div class="line"><span class="snode" style="margin-left:14px">商城·福利·宣传·成就·排行</span><span class="farrow">→</span><span class="fnode locked">P1 占位</span></div>
+        </div>
+        <div class="dnote">跳转规则：主界面常驻状态栏与底部功能栏；店铺面板为半屏弹层、弹窗为居中浮层；特级弹窗（存档冲突/防沉迷）可随时打断一切。</div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+// ============ 原型脚本（低保真演示用） ============
+const app = document.getElementById('app');
+
+const ICONS = {
+  coin:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#C9A227" stroke="#8A5A33" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="800" fill="#5C431F">¥</text></svg>',
+  prosper:'<svg viewBox="0 0 24 24"><path d="M4 20V9l8-6 8 6v11h-6v-6h-4v6z" fill="#D97E3D" stroke="#8A5A33" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+  star:'<svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.7 6.3.8-4.6 4.3 1.2 6.2-5.6-3-5.6 3 1.2-6.2L3 9.5l6.3-.8z" fill="#C9A227" stroke="#8A5A33" stroke-width="1.2"/></svg>',
+  cal:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2.5" fill="#F6EFE3" stroke="#8A5A33" stroke-width="1.5"/><path d="M4 9.5h16M8 3v4M16 3v4" stroke="#8A5A33" stroke-width="1.5"/><text x="12" y="19" text-anchor="middle" font-size="8" fill="#B85C3C" font-weight="800">日</text></svg>',
+  bag:'<svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 10V7a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  gift:'<svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 10v10M4 13.5h16M12 10c-1.5-2.5-4-1.5-3.5.5M12 10c1.5-2.5 4-1.5 3.5.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  horn:'<svg viewBox="0 0 24 24"><path d="M3 11v3h3l4 4V7l-4 4zM13 8a5 5 0 0 1 0 8M15.5 5.5a8.5 8.5 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  cup:'<svg viewBox="0 0 24 24"><path d="M7 4h10v7a5 5 0 0 1-10 0zM5 7h3M16 7h3M8 20h8M10 20v-2.5M14 20v-2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  list:'<svg viewBox="0 0 24 24"><path d="M4 6h2M4 12h2M4 18h2M9 6h11M9 12h11M9 18h11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  card:'<svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 10.5h5M7.5 14h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+};
+
+function fmt(n){
+  if(n>=1e9)return (n/1e9).toFixed(1)+'B';
+  if(n>=1e6)return (n/1e6).toFixed(1)+'M';
+  if(n>=1e3)return (n/1e3).toFixed(1)+'K';
+  return ''+Math.floor(n);
+}
+
+const state = {
+  view:'main', coins:12300, prosperity:260, stars:128, day:3,
+  customers:45, target:60, rent:230, fragments:0,
+  queue:[], current:null, building:null, buildTimer:null, drawPity:0,
+  shops:[
+    {id:1,name:'配钥匙铺',roof:'配钥匙',level:3,traffic:415,spend:73,cost:1200,color:'#B85C3C',unlocked:true},
+    {id:2,name:'自行车铺',roof:'自行车',level:2,traffic:260,spend:55,cost:800,color:'#8A5A33',unlocked:true},
+    {id:3,name:'纪念品铺',roof:'纪念品',level:1,traffic:120,spend:40,cost:350,color:'#D97E3D',unlocked:true},
+    {id:4,name:'花店',roof:'花店',level:1,traffic:150,spend:45,cost:400,color:'#7A8F6E',unlocked:true},
+    {id:5,name:'茶馆',roof:'？',level:0,traffic:0,spend:0,cost:0,color:'#A99A82',unlocked:false,need:2460}
+  ],
+  cards:[
+    {id:1,name:'老主顾',eff:'全局客流量 +10%',desc:'老顾客天天来，铺子更热闹',owned:true,on:true},
+    {id:2,name:'人气招牌',eff:'全局客流量 +15%',desc:'换了新招牌，路过的人多了',owned:true,on:true},
+    {id:3,name:'口碑相传',eff:'全局客单价 +10%',desc:'街坊口口相传，舍得花钱了',owned:false,on:true},
+    {id:4,name:'邻里熟客',eff:'全局客单价 +15%',desc:'熟客多了，小费也多了',owned:false,on:true},
+    {id:5,name:'租金减免',eff:'每日租金 -10%',desc:'和房东处好了关系',owned:false,on:true},
+    {id:6,name:'勤劳伙计',eff:'升级成本 -5%',desc:'伙计手脚麻利，工钱公道',owned:false,on:true},
+    {id:7,name:'深夜经营',eff:'离线收益 +10%',desc:'打烊后也点着灯',owned:false,on:true},
+    {id:8,name:'节日促销',eff:'全局收益 +8%',desc:'逢年过节，店里都挤满人',owned:false,on:true}
+  ]
+};
+
+const shop = id => state.shops.find(s=>s.id===+id);
+const incomeOf = s => s.unlocked ? (s.traffic*s.spend/3600).toFixed(1)+'/秒' : '';
+
+function toast(msg){
+  const t = document.createElement('div');
+  t.className='toast'; t.textContent=msg;
+  app.appendChild(t);
+  setTimeout(()=>t.remove(),1600);
+}
+function floatNum(x,y,text){
+  const d=document.createElement('div');
+  d.className='float-num'; d.textContent=text;
+  d.style.left=x+'px'; d.style.top=y+'px';
+  app.appendChild(d);
+  setTimeout(()=>d.remove(),1100);
+}
+
+function viewMain(){
+  const fill = Math.min(100,state.customers/state.target*100);
+  const dock = [
+    {k:'mall',l:'商城',i:'bag'},{k:'welfare',l:'福利',i:'gift'},{k:'promo',l:'宣传',i:'horn'},
+    {k:'achieve',l:'成就',i:'cup'},{k:'rank',l:'排行',i:'list'},{k:'cards',l:'策略卡',i:'card'}
+  ].map(d=>`<button class="dock-item" data-act="dock" data-arg="${d.k}">${ICONS[d.i]}<span>${d.l}</span></button>`).join('');
+  return `<div class="view-main">
+    <div class="topbar">
+      <div class="res-row">
+        <span class="res">${ICONS.coin}<span>${fmt(state.coins)}</span></span>
+        <span class="res">${ICONS.prosper}<span>${state.prosperity}</span><span class="small">繁荣</span></span>
+        <span class="res">${ICONS.star}<span>${state.stars}</span><span class="small">星</span></span>
+        <span class="res">${ICONS.cal}<span>第${state.day}天</span></span>
+      </div>
+      <div class="goal-row">
+        <span class="goal-label">今日顾客</span>
+        <div class="goal-track"><div class="goal-fill" style="width:${fill}%"></div></div>
+        <span class="goal-num">${state.customers}/${state.target}</span>
+        <button class="btn-settle" data-act="settle">去结算<span class="dot"></span></button>
+      </div>
+    </div>
+    <div class="street">
+      <div class="street-hint">← 左右滑动浏览老街 →</div>
+      <div class="street-inner">${state.shops.map(shopCard).join('')}</div>
+    </div>
+    <div class="dock">${dock}</div>
+  </div>`;
+}
+function shopCard(s){
+  if(!s.unlocked) return `<div class="shop locked" data-act="lockHint" data-arg="${s.need}">
+    <div class="roof" style="background:#A99A82">${s.roof}</div>
+    <div class="body"><div class="sname">${s.name}</div><div class="lock-tag">${s.need} 繁荣解锁</div></div></div>`;
+  return `<div class="shop" data-act="openShop" data-arg="${s.id}">
+    <div class="roof" style="background:${s.color}">${s.roof}</div>
+    <div class="body">
+      <div class="sname">${s.name}</div>
+      <div class="slevel">Lv.${s.level}</div>
+      <div class="smeta">客流 ${s.traffic}/时 · 客单 ${s.spend}</div>
+      <div class="income">+${incomeOf(s)}</div>
+    </div></div>`;
+}
+function viewShop(s){
+  return `<div class="overlay" data-act="closePanel">
+    <div class="sheet" data-stop="1">
+      <div class="panel-head"><h3>${s.name}</h3><button class="close-x" data-act="closePanel" data-stop="1">×</button></div>
+      <div class="level-bar">等级 Lv.${s.level} · 升级提升客流量与客单价</div>
+      <div class="stat-grid">
+        <div class="stat"><div class="k">每小时客流量</div><div class="v">${s.traffic}</div></div>
+        <div class="stat"><div class="k">基础消费</div><div class="v">${s.spend}</div></div>
+        <div class="stat"><div class="k">每秒产出</div><div class="v">${incomeOf(s)}</div></div>
+        <div class="stat"><div class="k">下一级成本</div><div class="v">${fmt(s.cost)}</div></div>
+      </div>
+      <button class="btn primary" data-act="upgrade" data-arg="${s.id}">升级店铺 · ${fmt(s.cost)} 金币</button>
+      <div class="build-zone">
+        <div class="bt">修建下一级（长按加速演示）</div>
+        <div class="bprogress"><i id="bfill"></i></div>
+        <div class="hold-tip">按住按钮加速修建，松开暂停</div>
+        <button class="btn gold sm" data-act="buildStart" data-arg="${s.id}" data-stop="1">按住修建</button>
+      </div>
+      <button class="btn ghost sm" data-act="closePanel" data-stop="1">关闭</button>
+    </div></div>`;
+}
+function viewCards(){
+  const cards = state.cards.map(c=>{
+    const st = c.owned ? `<span class="cstate owned">已拥有</span>` : `<span class="cstate new">未拥有</span>`;
+    const sw = c.owned ? `<button class="switch ${c.on?'':'off'}" data-act="toggleCard" data-arg="${c.id}">${c.on?'已启用':'已禁用'}</button>` : '';
+    return `<div class="ccard ${c.owned&&!c.on?'':''}" style="${c.owned&&!c.on?'opacity:.55':''}">
+      <div class="cname">${c.name}</div><div class="ceff">${c.eff}</div>
+      <div class="cdesc">${c.desc}</div>${st}${sw}</div>`;
+  }).join('');
+  return `<div class="cards-page">
+    <div class="cards-head">
+      <h3>策略卡 <span style="font-size:12px;color:var(--ink2);font-weight:400">P0-Lite · 加成区</span></h3>
+      <button class="close-x" data-act="backMain">×</button>
+    </div>
+    <div class="cards-body">
+      <div class="card-grid">${cards}</div>
+      <div class="draw-zone">
+        <div class="dtitle">抽卡</div>
+        <div class="dmeta">每日 1 次 · 卡牌全局生效 · 碎片 ${state.fragments}</div>
+        <button class="btn primary sm" data-act="draw">抽一张</button>
+        <button class="btn ghost sm" data-act="refresh">刷新卡池</button>
+        <div class="pity">保底：连续刷新 ${state.drawPity}/5 次必得未拥有卡</div>
+      </div>
+    </div>
+  </div>`;
+}
+function popupHTML(kind){
+  if(kind==='offline') return `<div class="overlay"><div class="popup">
+    <h3>离线收益</h3><div class="p-sub">离开期间，老街还在营业</div>
+    <div class="row2"><span>离线时长</span><b>3 小时 25 分</b></div>
+    <div class="row2"><span>离线收益</span><b>128,400</b></div>
+    <div class="row2"><span>离线效率</span><b>在线 100% / 离线 50%</b></div>
+    <div class="big-num">+128.4K</div>
+    <button class="btn gold" data-act="adTake">看广告翻倍领取</button>
+    <button class="btn ghost" data-act="popClose">收下</button>
+  </div></div>`;
+  if(kind==='settle') return `<div class="overlay"><div class="popup">
+    <h3>第${state.day}天结算</h3><div class="p-sub">${state.customers>=state.target?'目标达成':'顾客未达标 · 按当前进度强制结算'}</div>
+    <div class="row2"><span>完成顾客</span><b>${state.customers} / ${state.target}</b></div>
+    <div class="row2"><span>特殊顾客</span><b>2</b></div>
+    <div class="row2"><span>租金</span><b>-${state.rent}</b></div>
+    <div class="row2"><span>当日收益</span><b>3,492</b></div>
+    <div class="big-num">+3.5K</div>
+    <button class="btn gold" data-act="adTake">看广告翻倍</button>
+    <button class="btn primary" data-act="settleNext">去结算 · 进入第${state.day+1}天</button>
+  </div></div>`;
+  if(kind==='milestone') return `<div class="overlay"><div class="popup">
+    <h3>繁荣里程碑</h3><div class="p-sub">老街越来越热闹了</div>
+    <div class="row2"><span>繁荣值</span><b>260 / 250</b></div>
+    <div class="row2"><span>达成奖励</span><b>金币 +2,000</b></div>
+    <div class="big-num">里程碑达成</div>
+    <button class="btn primary" data-act="popClose">领取</button>
+  </div></div>`;
+  return '';
+}
+
+function render(){
+  app.innerHTML = state.view==='cards' ? viewCards() : viewMain();
+  if(state.current) app.insertAdjacentHTML('beforeend', popupHTML(state.current));
+}
+function enqueue(kind){ state.queue.push(kind); process(); }
+function process(){
+  if(state.current || state.queue.length===0) return;
+  state.current = state.queue.shift();
+  render();
+}
+function popClose(){
+  state.current = null;
+  process();
+}
+
+// ===== 动作分发（事件委托） =====
+app.addEventListener('click', e=>{
+  const el = e.target.closest('[data-act]');
+  if(!el) return;
+  const stop = el.dataset.stop;
+  if(!stop) e.stopPropagation();
+  const act = el.dataset.act, arg = el.dataset.arg;
+  ACTIONS[act] && ACTIONS[act](arg, el);
+});
+
+const ACTIONS = {
+  openShop(id){
+    const s = shop(id);
+    app.insertAdjacentHTML('beforeend', viewShop(s));
+    bindHold();
+  },
+  closePanel(){ const o=app.querySelector('.overlay'); if(o)o.remove(); },
+  lockHint(need){ toast('需要 '+need+' 繁荣值解锁'); },
+  upgrade(id){
+    const s = shop(id);
+    if(state.coins < s.cost){ toast('金币不足'); return; }
+    state.coins -= s.cost;
+    s.level++; s.traffic = Math.round(s.traffic*1.12); s.spend = Math.round(s.spend*1.08); s.cost = Math.round(s.cost*1.10);
+    state.prosperity += 15;
+    const r = app.querySelector('.overlay'); if(r)r.remove();
+    floatNum(app.clientWidth*0.6, 120, '+'+fmt(state.coins)+' 已扣');
+    toast(s.name+' 升级至 Lv.'+s.level);
+    render();
+  },
+  buildStart(id, el){
+    const s = shop(id);
+    if(state.building) return;
+    let p = 0;
+    state.building = true;
+    state.buildTimer = setInterval(()=>{
+      p += 4;
+      const f = document.getElementById('bfill');
+      if(f) f.style.width = Math.min(100,p)+'%';
+      if(p>=100){ clearInterval(state.buildTimer); state.building=false; s.level++; s.traffic=Math.round(s.traffic*1.08); s.cost=Math.round(s.cost*1.10); toast('修建完成 · '+s.name+' Lv.'+s.level); render(); }
+    }, 70);
+  },
+  settle(){ enqueue('settle'); },
+  settleNext(){ state.day++; state.customers = 8; state.rent = Math.round(state.rent*1.15); toast('进入第'+state.day+'天 · 租金 '+state.rent); popClose(); },
+  adTake(){ state.coins += 128400; toast('收益翻倍 +128.4K'); popClose(); },
+  popClose(){ popClose(); },
+  dock(k){
+    if(k==='cards'){ state.view='cards'; render(); }
+    else toast('P1 功能演示中：'+({mall:'商城',welfare:'福利',promo:'宣传',achieve:'成就',rank:'排行'})[k]);
+  },
+  backMain(){ state.view='main'; render(); },
+  toggleCard(id){
+    const c = state.cards.find(x=>x.id===+id);
+    if(c){ c.on=!c.on; render(); toast(c.name+' '+(c.on?'已启用':'已禁用')); }
+  },
+  draw(){
+    const unowned = state.cards.filter(c=>!c.owned);
+    if(unowned.length===0){ toast('已集齐全部卡牌'); return; }
+    state.drawPity++;
+    let got;
+    if(state.drawPity>=5){ got = unowned[Math.floor(Math.random()*unowned.length)]; state.drawPity=0; toast('保底触发 · 必得未拥有卡'); }
+    else got = state.cards[Math.floor(Math.random()*state.cards.length)];
+    if(got.owned){ state.fragments++; toast('重复卡 → 碎片 +1'); }
+    else { got.owned = true; toast('获得新卡：'+got.name); }
+    render();
+  },
+  refresh(){
+    state.drawPity = Math.min(5, state.drawPity+1);
+    toast('刷新卡池 · 保底 '+state.drawPity+'/5');
+  }
+};
+
+function bindHold(){
+  const btn = document.querySelector('[data-act="buildStart"]');
+  if(!btn) return;
+  const start = e=>{ e.preventDefault(); ACTIONS.buildStart(btn.dataset.arg, btn); };
+  const stop = ()=>{ if(state.building){ clearInterval(state.buildTimer); state.building=null; } };
+  btn.addEventListener('mousedown', start);
+  btn.addEventListener('touchstart', start, {passive:false});
+  ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>btn.addEventListener(ev, stop));
+}
+function reset(){ location.reload(); }
+
+render();
+enqueue('offline');
+setTimeout(()=>enqueue('settle'), 300);
+setTimeout(()=>enqueue('milestone'), 600);
+document.querySelector('.cap span:last-child').addEventListener('click', reset);
+</script>
+</body>
+</html>
