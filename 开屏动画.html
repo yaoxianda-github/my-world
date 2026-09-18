@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>开屏动画 · 二次元少女</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; background:#1a1526; overflow:hidden;
+    font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
+  /* 竖屏舞台 720x1560 等比 */
+  #stage { position:relative; margin:0 auto; width:100vmin; max-width:480px;
+    height:100vh; max-height:1040px; aspect-ratio:9/19.5; overflow:hidden;
+    background:linear-gradient(180deg,#ffd9c7 0%,#ffb8d0 34%,#e5b3f0 64%,#bcd4ff 100%);
+    box-shadow:0 0 60px rgba(0,0,0,.5); animation:bgShift 12s ease-in-out infinite alternate; }
+  @keyframes bgShift {
+    0% { filter:hue-rotate(0deg) saturate(1); }
+    100% { filter:hue-rotate(-12deg) saturate(1.1); } }
+
+  /* 背景光晕 */
+  .glow { position:absolute; left:50%; top:38%; width:120%; height:60%;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(ellipse at center, rgba(255,255,255,.85) 0%,
+      rgba(255,230,245,.4) 30%, transparent 65%);
+    opacity:0; animation:glowIn 1.6s ease .3s forwards, glowPulse 4s ease-in-out 2s infinite; }
+  @keyframes glowIn { to { opacity:1; } }
+  @keyframes glowPulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.9;}
+    50%{transform:translate(-50%,-50%) scale(1.08);opacity:1;} }
+
+  /* 旋转光芒 */
+  .rays { position:absolute; left:50%; top:36%; width:160%; height:160%;
+    transform:translate(-50%,-50%); opacity:0;
+    background:repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(255,255,255,.18) 0deg 6deg, transparent 6deg 18deg);
+    mix-blend-mode:overlay; animation:raysIn 2s ease .6s forwards, raySpin 60s linear infinite; }
+  @keyframes raysIn { to { opacity:.7; } }
+  @keyframes raySpin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+
+  #petals { position:absolute; inset:0; pointer-events:none; z-index:6; }
+
+  /* 角色容器：入场上浮 + 常驻呼吸 */
+  #char { position:absolute; left:50%; top:50%; width:66%; z-index:4;
+    transform:translate(-50%,60%) scale(.9); opacity:0;
+    animation:charIn 1.4s cubic-bezier(.22,1,.36,1) .5s forwards; }
+  .breathe { animation:breathe 4.5s ease-in-out 2s infinite; transform-origin:50% 100%; }
+  @keyframes charIn { to { transform:translate(-50%,-46%) scale(1); opacity:1; } }
+  @keyframes breathe { 0%,100%{transform:translateY(0) scale(1);}
+    50%{transform:translateY(-1.2%) scale(1.008);} }
+
+  /* 头发飘动（分组摆动） */
+  .hairSway { animation:hairSway 3.2s ease-in-out infinite; transform-origin:50% 0; }
+  @keyframes hairSway { 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(2.2deg);} }
+  .hairSway2 { animation:hairSway2 3.8s ease-in-out infinite; transform-origin:50% 0; }
+  @keyframes hairSway2 { 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(-2.6deg);} }
+
+  /* 眨眼：平时睁，间歇闭 */
+  .eyelid { transform-origin:center; animation:blink 5.5s ease-in-out 3s infinite; }
+  @keyframes blink { 0%,92%,100%{transform:scaleY(0);} 95%,97%{transform:scaleY(1);} }
+
+  /* 裙摆轻摆 */
+  .skirt { animation:skirtSway 3.5s ease-in-out infinite; transform-origin:50% 0; }
+  @keyframes skirtSway { 0%,100%{transform:skewX(0deg);} 50%{transform:skewX(-2deg);} }
+
+  /* 标题 */
+  #title { position:absolute; left:0; right:0; top:11%; text-align:center; z-index:7;
+    opacity:0; animation:titleIn 1s ease 1.6s forwards; }
+  #title .cn { font-size:clamp(30px,9vmin,58px); font-weight:800; letter-spacing:.12em;
+    color:#fff; text-shadow:0 2px 0 #ff88bb, 0 4px 16px rgba(255,80,150,.6);
+    background:linear-gradient(180deg,#fff 0%,#ffe3f0 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 3px 6px rgba(220,60,130,.55)); }
+  #title .sub { margin-top:2vmin; font-size:clamp(12px,3.4vmin,18px); letter-spacing:.35em;
+    color:#fff; text-shadow:0 1px 6px rgba(180,40,110,.7); opacity:.95; }
+  @keyframes titleIn { from{opacity:0;transform:translateY(-16px);} to{opacity:1;transform:translateY(0);} }
+
+  /* 标题高光扫过 */
+  #title .shine { position:absolute; left:0; right:0; top:0; bottom:0;
+    background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.75) 50%,transparent 60%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    animation:shine 3.5s ease 2.6s infinite; }
+
+  /* 加载条 */
+  #loader { position:absolute; left:50%; bottom:11%; transform:translateX(-50%);
+    width:56%; z-index:7; opacity:0; animation:fadeIn .8s ease 2s forwards; }
+  #bar { height:8px; border-radius:8px; background:rgba(255,255,255,.35);
+    overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,.15); }
+  #fill { height:100%; width:0; border-radius:8px;
+    background:linear-gradient(90deg,#ff8fc0,#ffd16b); animation:load 3s ease .3s forwards; }
+  #pct { margin-top:1.4vmin; text-align:center; font-size:12px; letter-spacing:.2em;
+    color:#fff; text-shadow:0 1px 4px rgba(180,40,110,.6); }
+  @keyframes load { to { width:100%; } }
+  @keyframes fadeIn { to { opacity:1; } }
+  @keyframes shine { 0%{transform:translateX(-60%);} 55%,100%{transform:translateX(60%);} }
+
+  /* 点击开始 */
+  #start { position:absolute; left:50%; bottom:10%; transform:translateX(-50%) scale(.9);
+    z-index:8; opacity:0; pointer-events:none; padding:14px 46px; border-radius:40px;
+    font-size:clamp(15px,4vmin,20px); font-weight:700; letter-spacing:.2em; color:#c0396f;
+    background:linear-gradient(180deg,#fff,#ffe6f1); border:none; cursor:pointer;
+    box-shadow:0 6px 0 #ff9dc4,0 10px 22px rgba(220,60,130,.5);
+    animation:startIn .6s ease forwards, pop 1.6s ease-in-out infinite; }
+  @keyframes startIn { to { opacity:1; pointer-events:auto; } }
+  @keyframes pop { 0%,100%{transform:translateX(-50%) scale(1);}
+    50%{transform:translateX(-50%) scale(1.06);} }
+  #start:active { transform:translateX(-50%) scale(.94); box-shadow:0 3px 0 #ff9dc4; }
+
+  #replay { position:absolute; right:12px; top:12px; z-index:9; padding:8px 14px;
+    font-size:12px; border-radius:20px; border:1px solid rgba(255,255,255,.6);
+    background:rgba(255,255,255,.25); color:#fff; cursor:pointer; backdrop-filter:blur(4px); }
+  .hint { position:absolute; left:0; right:0; bottom:3%; text-align:center; z-index:7;
+    font-size:11px; color:rgba(255,255,255,.7); letter-spacing:.15em; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="glow"></div>
+  <div class="rays"></div>
+  <canvas id="petals"></canvas>
+
+  <div id="title">
+    <div style="position:relative;display:inline-block;">
+      <span class="cn">老街新生</span>
+      <span class="shine cn" aria-hidden="true">老街新生</span>
+    </div>
+    <div class="sub">从一家小铺开始</div>
+  </div>
+
+  <!-- 二次元少女：纯 SVG 矢量，可无损缩放 -->
+  <div id="char">
+   <div class="breathe">
+    <svg viewBox="0 0 300 460" width="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#ffc24d"/>
+        </linearGradient>
+        <linearGradient id="hairB" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffd873"/><stop offset="1" stop-color="#f7a92e"/>
+        </linearGradient>
+        <linearGradient id="dress" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#ffd9ea"/>
+        </linearGradient>
+        <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ff7fb0"/><stop offset="1" stop-color="#ff4f8b"/>
+        </linearGradient>
+        <radialGradient id="cheek" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#ff9bbd" stop-opacity=".8"/>
+          <stop offset="1" stop-color="#ff9bbd" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="eye" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#7ad7ff"/><stop offset=".6" stop-color="#4a90e2"/>
+          <stop offset="1" stop-color="#2f5fb0"/>
+        </linearGradient>
+      </defs>
+
+      <!-- 后层长发（左右摆动） -->
+      <g class="hairSway2">
+        <path d="M150 70 C70 80 60 200 78 330 C84 372 70 400 96 410
+                 C104 350 108 300 120 250 C112 320 120 380 140 405
+                 C138 300 150 180 150 120 Z" fill="url(#hairB)"/>
+        <path d="M150 70 C230 80 240 200 222 330 C216 372 230 400 204 410
+                 C196 350 192 300 180 250 C188 320 180 380 160 405
+                 C162 300 150 180 150 120 Z" fill="url(#hairB)"/>
+      </g>
+
+      <!-- 身体 / 连衣裙（裙摆摆动） -->
+      <g class="skirt">
+        <path d="M150 250 C120 255 108 270 100 300 L78 400
+                 C110 420 190 420 222 400 L200 300
+                 C192 270 180 255 150 250 Z" fill="url(#dress)"
+                 stroke="#ffc0dc" stroke-width="2"/>
+        <path d="M150 250 L150 400" stroke="#ffd0e6" stroke-width="2" opacity=".7"/>
+      </g>
+      <!-- 领口丝带 -->
+      <path d="M132 258 L150 274 L168 258 L162 246 L150 256 L138 246 Z" fill="url(#ribbon)"/>
+      <circle cx="150" cy="256" r="6" fill="#ff4f8b"/>
+
+      <!-- 脖子 -->
+      <rect x="140" y="222" width="20" height="26" rx="9" fill="#ffe6d5"/>
+
+      <!-- 头部 -->
+      <g>
+        <!-- 脸 -->
+        <path d="M150 120 C104 120 96 165 100 192 C104 220 128 236 150 236
+                 C172 236 196 220 200 192 C204 165 196 120 150 120 Z" fill="#ffeede"/>
+        <!-- 腮红 -->
+        <ellipse cx="120" cy="196" rx="13" ry="8" fill="url(#cheek)"/>
+        <ellipse cx="180" cy="196" rx="13" ry="8" fill="url(#cheek)"/>
+
+        <!-- 眉 -->
+        <path d="M116 168 q12 -7 24 -2" stroke="#e0913c" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M160 166 q12 -5 24 2" stroke="#e0913c" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+        <!-- 眼睛（大） -->
+        <g>
+          <ellipse cx="126" cy="188" rx="15" ry="19" fill="#fff"/>
+          <ellipse cx="126" cy="190" rx="13" ry="17" fill="url(#eye)"/>
+          <circle cx="126" cy="192" r="7" fill="#1c3a70"/>
+          <circle cx="122" cy="185" r="4.5" fill="#fff"/>
+          <circle cx="130" cy="196" r="2.5" fill="#fff" opacity=".8"/>
+          <path d="M110 176 q16 -10 32 -2" stroke="#5a3510" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <!-- 眼皮（眨眼） -->
+          <rect class="eyelid" x="110" y="169" width="33" height="40" rx="16" fill="#ffeede"/>
+        </g>
+        <g>
+          <ellipse cx="174" cy="188" rx="15" ry="19" fill="#fff"/>
+          <ellipse cx="174" cy="190" rx="13" ry="17" fill="url(#eye)"/>
+          <circle cx="174" cy="192" r="7" fill="#1c3a70"/>
+          <circle cx="170" cy="185" r="4.5" fill="#fff"/>
+          <circle cx="178" cy="196" r="2.5" fill="#fff" opacity=".8"/>
+          <path d="M158 174 q16 -8 32 2" stroke="#5a3510" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <rect class="eyelid" x="157" y="169" width="33" height="40" rx="16" fill="#ffeede"/>
+        </g>
+
+        <!-- 鼻 / 嘴 -->
+        <path d="M148 204 q2 3 4 0" stroke="#e8a07a" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M140 214 q10 10 20 0" stroke="#d5688a" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </g>
+
+      <!-- 前层刘海（轻摆，盖在脸上部） -->
+      <g class="hairSway">
+        <path d="M150 96 C96 96 88 150 92 186 C104 150 120 150 122 172
+                 C126 150 140 146 150 168 C160 146 174 150 178 172
+                 C180 150 196 150 208 186 C212 150 204 96 150 96 Z" fill="url(#hair)"/>
+        <!-- 双马尾束发点 -->
+        <circle cx="96" cy="150" r="12" fill="url(#ribbon)"/>
+        <circle cx="204" cy="150" r="12" fill="url(#ribbon)"/>
+      </g>
+
+      <!-- 头顶呆毛 -->
+      <path d="M150 96 q6 -22 20 -26 q-8 12 -6 24" fill="url(#hair)"/>
+    </svg>
+   </div>
+  </div>
+
+  <button id="start">点 击 开 始</button>
+
+  <div id="loader">
+    <div id="bar"><div id="fill"></div></div>
+    <div id="pct">0%</div>
+  </div>
+
+  <button id="replay">↻ 重播</button>
+  <div class="hint">SVG 矢量演示 · 角色/文案请替换为原创正式美术资源</div>
+</div>
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const cv = document.getElementById('petals');
+  const ctx = cv.getContext('2d');
+  let W, H, petals = [], sparks = [], raf;
+
+  function resize(){
+    const r = stage.getBoundingClientRect();
+    cv.width = W = r.width; cv.height = H = r.height;
+  }
+  window.addEventListener('resize', resize);
+
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+
+  function makePetal(y){
+    return { x:rnd(0,W), y: y!==undefined?y:rnd(-H,0), s:rnd(6,14),
+      vy:rnd(.4,1.4), vx:rnd(-.5,.5), rot:rnd(0,Math.PI*2), vr:rnd(-.03,.03),
+      sway:rnd(.5,1.5), t:rnd(0,Math.PI*2),
+      c: Math.random()<.5 ? '#ffd6e8' : (Math.random()<.5?'#ffe9b8':'#ffffff') };
+  }
+  function makeSpark(){
+    return { x:rnd(0,W), y:rnd(0,H), r:rnd(.8,2.4), a:rnd(.2,.9),
+      va:rnd(.005,.02), phase:rnd(0,Math.PI*2), vy:rnd(-.2,-.05) };
+  }
+
+  function drawPetal(p){
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+    ctx.fillStyle = p.c; ctx.globalAlpha = .9;
+    // 樱花花瓣形
+    ctx.beginPath();
+    ctx.moveTo(0,-p.s*.5);
+    ctx.quadraticCurveTo(p.s*.5,-p.s*.3, p.s*.35,p.s*.4);
+    ctx.quadraticCurveTo(0,p.s*.2, -p.s*.35,p.s*.4);
+    ctx.quadraticCurveTo(-p.s*.5,-p.s*.3, 0,-p.s*.5);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function tick(){
+    ctx.clearRect(0,0,W,H);
+    // 光点
+    for(const s of sparks){
+      s.phase += s.va; s.y += s.vy;
+      if(s.y < -5) { s.y = H+5; s.x = rnd(0,W); }
+      const a = s.a * (0.5 + 0.5*Math.sin(s.phase));
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,'+a+')'; ctx.fill();
+    }
+    // 花瓣
+    for(const p of petals){
+      p.t += 0.02; p.y += p.vy; p.x += p.vx + Math.sin(p.t)*p.sway;
+      p.rot += p.vr;
+      if(p.y > H+20){ Object.assign(p, makePetal(-20)); }
+      if(p.x < -20) p.x = W+20; if(p.x > W+20) p.x = -20;
+      drawPetal(p);
+    }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function initParticles(){
+    petals = Array.from({length:26}, ()=>makePetal());
+    sparks = Array.from({length:34}, ()=>makeSpark());
+  }
+
+  // 加载条百分比
+  const pct = document.getElementById('pct');
+  const fill = document.getElementById('fill');
+  let loadTimer;
+  function runLoader(){
+    clearInterval(loadTimer);
+    const t0 = performance.now(), dur = 3000, delay = 300;
+    loadTimer = setInterval(()=>{
+      const e = Math.min(1, Math.max(0,(performance.now()-t0-delay)/dur));
+      pct.textContent = Math.round(e*100)+'%';
+      if(e>=1){ clearInterval(loadTimer); pct.textContent='100%'; }
+    },40);
+  }
+
+  // 重播：重置所有动画
+  function replay(){
+    const clones = [];
+    ['#title','#char','.glow','.rays','#loader','#start'].forEach(sel=>{
+      const el = stage.querySelector(sel);
+      const c = el.cloneNode(true); el.parentNode.replaceChild(c,el);
+    });
+    // 重新绑定 start
+    bindStart();
+    runLoader();
+  }
+
+  function bindStart(){
+    const btn = document.getElementById('start');
+    if(btn) btn.addEventListener('click', ()=>{
+      stage.style.transition='opacity .5s'; stage.style.opacity='0';
+      setTimeout(()=>{ alert('▶ 进入游戏主界面（此处接入游戏场景）'); stage.style.opacity='1'; },500);
+    });
+  }
+
+  document.getElementById('replay').addEventListener('click', replay);
+
+  resize(); initParticles(); tick(); runLoader(); bindStart();
+})();
+</script>
+</body>
+</html>

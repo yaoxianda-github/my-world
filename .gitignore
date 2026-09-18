@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 大体积中间产物（不纳入版本控制，按需另行存档）
+# 竞品原始录屏（82MB，版权敏感，不入库）
+my-world.mp4
+# 拆帧关键帧（248帧，246MB）
+frames_keep/
+# 接触印象表（全分辨率30MB / 低分辨率1.8MB）
+sheets/
+sheets_sm/
+
+# 临时文件
+*.tmp
