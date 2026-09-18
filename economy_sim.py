@@ -34,6 +34,20 @@ PARAMS = {
     # 仿真范围
     "MAX_LEVEL": 50,
     "SIM_DAYS":  10,
+    # 多店铺 N 天进度仿真 (§7.8 新增)
+    "SHOPS": [  # (店名, T_base, S_base, a_t, r_s, C_base, r_c, 解锁繁荣)
+        ("配钥匙铺", 100.0, 10.0, 0.12, 1.08, 50.0,  1.10, 0),
+        ("自行车铺", 80.0,  12.0, 0.12, 1.08, 80.0,  1.10, 260),
+        ("纪念品铺", 70.0,  15.0, 0.12, 1.09, 120.0, 1.11, 800),
+        ("花店",    90.0,  13.0, 0.12, 1.08, 100.0, 1.11, 1600),
+        ("茶馆",    110.0, 18.0, 0.12, 1.09, 200.0, 1.12, 2460),
+    ],
+    "DAY_PLAY_H": 1.0,          # 每游戏日现实在线挂机小时(示例)
+    "NIGHT_OFF_H": 8.0,         # 每游戏日夜间离线小时(示例)
+    "PROSPERITY_PER_LEVEL": 15, # 每升一级繁荣贡献(示例)
+    "BUILD_COST_RATE": 0.5,     # 修建新店成本 = 首级成本 × 该系数(示例)
+    "MAX_UPGRADES_PER_DAY": 10, # 每日最多升级次数(模拟玩家手动操作上限,示例)
+    "T_DAY_MAX_H": 8.0,         # 游戏日现实最大时长(强制结算阈值)
     # 健康度阈值 (§8.1)
     "PB_MIN": 30,          # 回本时间下限(秒) — 过低=升级太廉价
     "PB_MAX": 30*60,       # 回本时间上限(秒) — 过高=卡关
@@ -239,6 +253,91 @@ def offline_demo(p):
               f"  广告翻倍后 {fmt_num(gain*p['k_ad']):>10} 币{capped}")
 
 
+def simulate_progress(p):
+    """多店铺 N 天进度仿真（示例参数）：
+    每天: 在线挂机 DAY_PLAY_H 小时 + 夜间离线 NIGHT_OFF_H 小时(×η_off, 封顶)
+    金币够就升级(按成本从低到高), 繁荣达阈值解锁/修建新店, 每日扣租金。
+    输出: 每日 金币/繁荣/解锁店数/租金压力, 以及解锁节奏诊断。"""
+    shops = p["SHOPS"]
+    st = [{"lv": 1, "on": i == 0} for i in range(len(shops))]
+    coins, prosperity = 0.0, 0.0
+    owe = 0.0  # 欠租记账
+    unlock_days = {shops[i][0]: None for i in range(1, len(shops))}
+    print("\n" + "=" * 82)
+    print(f"【多店铺 N 天进度仿真】({len(shops)} 家店, "
+          f"每天在线 {p['DAY_PLAY_H']}h + 离线 {p['NIGHT_OFF_H']}h, "
+          f"η_off={p['eta_off']}, G={p['G']})")
+    print("=" * 82)
+    print(f"{'Day':>4} {'解锁':>6} {'总秒产出':>10} {'金币余额':>12} "
+          f"{'繁荣值':>10} {'租金':>10} {'压力比':>8}")
+    print("-" * 82)
+
+    def rate_total():
+        return sum(shop_rate(i) for i, s in enumerate(st) if s["on"])
+
+    def shop_rate(i):
+        _, T0, S0, a_t, r_s, _, _, _ = shops[i]
+        L = st[i]["lv"]
+        return T0 * (1 + a_t * (L - 1)) * S0 * (r_s ** (L - 1)) / 3600.0 * p["G"]
+
+    def shop_cost(i):
+        _, _, _, _, _, C0, r_c, _ = shops[i]
+        return C0 * (r_c ** (st[i]["lv"] - 1))
+
+    for day in range(1, p["SIM_DAYS"] + 1):
+        day_start_rate = rate_total()
+        dt_on = p["DAY_PLAY_H"] * 3600
+        dt_off = min(p["NIGHT_OFF_H"] * 3600, p["t_off_max"]) * p["eta_off"]
+        coins += rate_total() * (dt_on + dt_off)
+        # 升级: 按成本从低到高, 金币够就升 (受每日操作上限约束)
+        up_count = 0
+        while up_count < p["MAX_UPGRADES_PER_DAY"]:
+            cand = [i for i, s in enumerate(st) if s["on"] and coins >= shop_cost(i)]
+            if not cand:
+                break
+            i = min(cand, key=shop_cost)
+            coins -= shop_cost(i)
+            st[i]["lv"] += 1
+            prosperity += p["PROSPERITY_PER_LEVEL"]
+            up_count += 1
+        # 解锁/修建新店
+        for i, s in enumerate(st):
+            if not s["on"] and prosperity >= shops[i][7]:
+                build_cost = shops[i][5] * p["BUILD_COST_RATE"]
+                if coins >= build_cost:
+                    coins -= build_cost
+                    s["on"] = True
+                    unlock_days[shops[i][0]] = f"第{day}天"
+        # 租金(含欠租优先抵扣)
+        rt = rent(day, p)
+        if owe > 0:
+            rt += owe
+            owe = 0.0
+        if coins >= rt:
+            coins -= rt
+        else:
+            owe += rt - coins
+            coins = 0.0
+        # 输出
+        daily_income = day_start_rate * dt_on
+        ratio = rent(day, p) / daily_income if daily_income > 0 else float("inf")
+        unlocked = sum(1 for s in st if s["on"])
+        print(f"{day:>4} {unlocked:>4}家 {fmt_num(rate_total()):>10} "
+              f"{fmt_num(coins):>12} {prosperity:>10.0f} "
+              f"{fmt_num(rent(day,p)):>10} {ratio*100:>6.1f}%")
+    # 诊断
+    print("-" * 82)
+    if any(v for v in unlock_days.values()):
+        print("解锁节奏(实际模拟): " +
+              ", ".join(f"{k} {v}" for k, v in unlock_days.items() if v) +
+              " (其余未解锁)")
+    else:
+        print("解锁节奏: 10 天内均未解锁新店 — 繁荣增速过低或阈值过高")
+    print(f"末态: 金币 {fmt_num(coins)}, 繁荣 {prosperity:.0f}, "
+          f"欠租 {fmt_num(owe)}, 解锁 {sum(1 for s in st if s['on'])}/{len(shops)} 家店")
+    print("提示: 参数均为示例, 实机校验回填后替换 PARAMS 即可重跑。")
+
+
 def tips():
     print("\n" + "=" * 82)
     print("【调参提示】")
@@ -258,5 +357,6 @@ if __name__ == "__main__":
     simulate_idle(p)
     daily_pressure(p)
     offline_demo(p)
+    simulate_progress(p)
     tips()
 
