@@ -279,9 +279,10 @@ def offline_demo(p):
               f"  广告翻倍后 {fmt_num(gain*p['k_ad']):>10} 币{capped}")
 
 
-def simulate_progress(p):
-    """多店铺 N 天进度仿真（示例参数）：
+def simulate_progress(p, ad_user=False, label=""):
+    """多店铺 N 天进度仿真（逆向参数锚定版）：
     每天: 在线挂机 DAY_PLAY_H 小时 + 夜间离线 NIGHT_OFF_H 小时(×η_off, 封顶)
+    ad_user=True 时离线收益 ×k_ad（重度看广告路径）；否则纯挂机路径。
     金币够就升级(按成本从低到高), 繁荣达阈值解锁/修建新店, 每日扣租金。
     输出: 每日 金币/繁荣/解锁店数/租金压力, 以及解锁节奏诊断。"""
     shops = p["SHOPS"]
@@ -290,11 +291,12 @@ def simulate_progress(p):
     owe = 0.0  # 欠租记账
     unlock_days = {shops[i][0]: None for i in range(1, len(shops))}
     fired_ms = set()
-    print("\n" + "=" * 82)
-    print(f"【多店铺 N 天进度仿真】({len(shops)} 家店, "
+    ad_mult = p["k_ad"] if ad_user else 1.0
+    print("\n" + "=" * 88)
+    print(f"【多店铺 N 天进度仿真】{label}（{len(shops)} 家店, "
           f"每天在线 {p['DAY_PLAY_H']}h + 离线 {p['NIGHT_OFF_H']}h, "
-          f"η_off={p['eta_off']}, G={p['G']})")
-    print("=" * 82)
+          f"η_off={p['eta_off']}, 离线×{ad_mult:g}）")
+    print("=" * 88)
     print(f"{'Day':>4} {'解锁':>6} {'G':>5} {'总秒产出':>10} {'金币余额':>12} "
           f"{'繁荣值':>10} {'租金':>10} {'压力比':>8}")
     print("-" * 88)
@@ -335,7 +337,7 @@ def simulate_progress(p):
         g_eff, rent_red = g_at(day)
         day_start_rate = rate_total(g_eff)
         dt_on = p["DAY_PLAY_H"] * 3600
-        dt_off = min(p["NIGHT_OFF_H"] * 3600, p["t_off_max"]) * p["eta_off"]
+        dt_off = min(p["NIGHT_OFF_H"] * 3600, p["t_off_max"]) * p["eta_off"] * ad_mult
         coins += rate_total(g_eff) * (dt_on + dt_off)
         # 升级: 按成本从低到高, 金币够就升 (受每日操作上限约束)
         up_count = 0
@@ -414,6 +416,7 @@ if __name__ == "__main__":
     simulate_idle(p)
     daily_pressure(p)
     offline_demo(p)
-    simulate_progress(p)
+    simulate_progress(p, ad_user=False, label="【路径A·不看广告】")
+    simulate_progress(p, ad_user=True,  label="【路径B·重度看广告】")
     tips()
 
