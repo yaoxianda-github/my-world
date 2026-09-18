@@ -72,6 +72,23 @@
   .settle-row{flex:none;padding:10px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
   .settle-info{flex:1;font-size:11px;color:var(--ink2)}
   .settle-info b{color:var(--brick);font-size:13px}
+
+  /* ===== 特殊顾客 ===== */
+  .special{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,var(--gold),#D9B64E);border-radius:12px;padding:9px 12px;margin-bottom:10px;color:#fff}
+  .special .sp-icon{font-size:22px}
+  .special .sp-info{flex:1;font-size:12px;font-weight:700}
+  .special .sp-info small{display:block;font-weight:500;font-size:10px;opacity:.9}
+  .special .sp-btn{background:var(--brick);color:#fff;border:none;border-radius:14px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer}
+
+  /* ===== 任务页 ===== */
+  .task{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+  .task .tname{font-size:14px;font-weight:800}
+  .task .tdesc{font-size:11px;color:var(--ink2);margin:3px 0 7px}
+  .task .tiers{display:flex;gap:8px}
+  .tier{flex:1;text-align:center;font-size:10px;font-weight:700;border-radius:8px;padding:5px 2px;background:#EFE6D6;color:var(--ink2)}
+  .tier.can{background:var(--orange);color:#fff;cursor:pointer}
+  .tier.done{background:var(--green);color:#fff}
+  .task .treward{font-size:10px;color:var(--ink2);margin-top:6px}
 </style>
 </head>
 <body>
@@ -93,6 +110,7 @@
   <div class="page on" id="pageStreet">
     <div class="street" style="padding:0">
       <div class="street-title">— 老 街 —</div>
+      <div id="specialBox" style="padding:0 12px"></div>
       <div class="shop-list" id="shopList"></div>
     </div>
   </div>
@@ -105,6 +123,10 @@
     <div class="card-grid" id="cardGrid"></div>
   </div>
 
+  <div class="page" id="pageTasks">
+    <div id="taskList"></div>
+  </div>
+
   <div class="settle-row">
     <div class="settle-info">完成顾客 <b id="custDone">0</b>/<span id="custTarget">60</span><br>租金明日 <b id="rentNext">230</b></div>
     <button class="btn" id="settleBtn" style="flex:none;padding:12px 18px">结算 · 推进一天</button>
@@ -113,6 +135,7 @@
   <div class="tabs">
     <div class="tab on" data-page="pageStreet">街道</div>
     <div class="tab" data-page="pageCards">卡牌 <span class="badge" id="cardBadge" style="display:none">!</span></div>
+    <div class="tab" data-page="pageTasks">任务</div>
   </div>
 </div>
 <div id="toast"></div>
@@ -139,15 +162,34 @@ const CARDS=[
  {id:1008,rar:"rare",name:"匠心手作",type:"mult",target:"spend",val:.20},
 ];
 const P={eta:.5,tOffMax:8*3600,kAd:2,promo:.5,gMax:10,rentBase:200,rRent:1.15,cust:[60,80,100,125,150]};
+const TASKS=[
+ {id:2001,name:"收益领取",desc:"结算或看广告 3/6/9 次",tiers:[3,6,9],reward:"2min",rdesc:"2分钟收益"},
+ {id:2002,name:"服务顾客",desc:"累计服务 250/500/1000 人",tiers:[250,500,1000],reward:"coin500",rdesc:"+500币"},
+ {id:2003,name:"在线时长",desc:"今日在线 20/30 分钟",tiers:[1200,1800],reward:"speed600",rdesc:"600秒加速"},
+];
+const SPECIALS=[
+ {type:"阔佬",icon:"🎩",reward:"coin",amount:600},
+ {type:"艺人",icon:"🎭",reward:"prosp",amount:80},
+ {type:"游客",icon:"🧳",reward:"coin",amount:300},
+];
 
 // ============ 状态 ============
 const KEY="laojie_mvp_v1";
 let S;
 function defaultState(){return{coins:0,prosper:0,day:1,owe:0,
  shops:[{lv:1,on:true},{lv:1,on:false},{lv:1,on:false},{lv:1,on:false},{lv:1,on:false}],
- cards:[],msHit:[],cust:0,adUsed:false,last:Date.now()};}
+ cards:[],msHit:[],cust:0,adUsed:false,last:Date.now(),
+ boost:0,onlineSec:0,taskClaimed:{},special:null,specialAt:0,speedUntil:0};}
 function save(){S.last=Date.now();localStorage.setItem(KEY,JSON.stringify(S));}
-function load(){try{let d=JSON.parse(localStorage.getItem(KEY));return d||defaultState();}catch(e){return defaultState();}}
+function load(){
+ try{
+  let d=JSON.parse(localStorage.getItem(KEY));
+  if(!d)return defaultState();
+  // 旧存档合并新字段
+  let base=defaultState();
+  return Object.assign(base,d,{shops:d.shops||base.shops,taskClaimed:d.taskClaimed||{}});
+ }catch(e){return defaultState();}
+}
 S=load();
 
 // ============ 数值函数 ============
@@ -161,7 +203,8 @@ function gEff(){
 function shopRate(i){let sh=SHOPS[i],lv=S.shops[i].lv;
  return sh.T0*(1+sh.a_t*(lv-1))*sh.S0*Math.pow(sh.r_s,lv-1)/3600;}
 function totalRate(){let{g}=gEff();
- return SHOPS.reduce((r,sh,i)=>r+(S.shops[i].on?shopRate(i)*g:0),0);}
+ let base=SHOPS.reduce((r,sh,i)=>r+(S.shops[i].on?shopRate(i)*g:0),0);
+ return base*(Date.now()<S.speedUntil?2:1);}
 function upCost(i){let sh=SHOPS[i];return sh.C0*Math.pow(sh.r_c,S.shops[i].lv-1);}
 function prospGain(i,lv){let arr=PROSP_GAIN[i]||[[1,999,5]];
  for(let[a,b,g]of arr)if(lv>=a&&lv<=b)return g;return arr[arr.length-1][2];}
@@ -196,7 +239,7 @@ function settle(){
  let rt=rentDay(S.day)*(1-rentRed);
  if(S.owe>0){rt+=S.owe;S.owe=0;}
  if(S.coins>=rt){S.coins-=rt;}else{S.owe+=rt-S.coins;S.coins=0;}
- S.day++;S.cust=0;S.adUsed=false;
+ S.day++;S.cust=0;S.adUsed=false;S.boost++;
  toast(`第${S.day}天开始 · 已付租金${fmt(rt)}`);save();render();
 }
 function drawCard(){
@@ -209,7 +252,39 @@ function adDouble(){
  if(S.adUsed){toast("今日已用过广告翻倍");return;}
  // 占位: 模拟看广告后, 立即补一笔离线收益×k_ad
  let gain=totalRate()*3600*P.eta*P.kAd;
- S.coins+=gain;S.adUsed=true;toast(`广告翻倍: +${fmt(gain)}币`);save();render();
+ S.coins+=gain;S.adUsed=true;S.boost++;toast(`广告翻倍: +${fmt(gain)}币`);save();render();
+}
+
+// ============ 特殊顾客 (2026-09-19) ============
+function newSpecial(){
+ let t=SPECIALS[Math.floor(Math.random()*SPECIALS.length)];
+ S.special={type:t.type,icon:t.icon,reward:t.reward,amount:t.amount,until:Date.now()+30000};
+}
+function serveSpecial(){
+ if(!S.special)return;
+ let sp=S.special;
+ if(sp.reward==="coin"){let v=totalRate()*sp.amount;S.coins+=v;toast(`${sp.icon}${sp.type} 打赏 +${fmt(v)}币`);}
+ else{S.prosper+=sp.amount;toast(`${sp.icon}${sp.type} 助力 繁荣+${sp.amount}`);}
+ S.special=null;S.specialAt=Date.now();checkMilestones();save();render();
+}
+
+// ============ 每日任务 (2026-09-19, daily_task.xlsx 逆向) ============
+function taskProgress(tid){
+ if(tid===2001)return S.boost;
+ if(tid===2002)return Math.floor(S.cust);
+ if(tid===2003)return Math.floor(S.onlineSec);
+ return 0;
+}
+function claimTask(tid,tierIdx){
+ let t=TASKS.find(x=>x.id===tid);if(!t)return;
+ let key=tid+"_"+tierIdx;
+ if(S.taskClaimed[key])return;
+ if(taskProgress(tid)<t.tiers[tierIdx]){toast("进度未达标");return;}
+ S.taskClaimed[key]=true;
+ if(t.reward==="2min"){let v=totalRate()*120;S.coins+=v;toast(`任务奖励 +${fmt(v)}币`);}
+ else if(t.reward==="coin500"){S.coins+=500;toast("任务奖励 +500币");}
+ else if(t.reward==="speed600"){S.speedUntil=Date.now()+600000;toast("任务奖励 600秒加速");}
+ save();render();
 }
 
 // ============ 离线结算 ============
@@ -238,6 +313,15 @@ function render(){
  document.getElementById("prosFill").style.width=Math.min(100,S.prosper/nextThr*100)+"%";
  // 店铺列表
  let list=document.getElementById("shopList");list.innerHTML="";
+ // 特殊顾客横幅
+ let sb=document.getElementById("specialBox");
+ if(S.special){
+  let sp=S.special;
+  sb.innerHTML=`<div class="special">
+   <div class="sp-icon">${sp.icon}</div>
+   <div class="sp-info">${sp.type} 到店！<small>${sp.reward==="coin"?"接待获得打赏金币":"接待获得繁荣助力"}</small></div>
+   <button class="sp-btn" onclick="serveSpecial()">接待</button></div>`;
+ }else sb.innerHTML="";
  SHOPS.forEach((sh,i)=>{
   let st=S.shops[i];
   let div=document.createElement("div");
@@ -272,6 +356,20 @@ function render(){
    ${{traffic:"客流量",spend:"客单价",rent:"租金减免"}[cd.target]} +${Math.round(cd.val*100)}%</div>`;
   grid.appendChild(div);
  });
+ // 任务页
+ let tl=document.getElementById("taskList");tl.innerHTML="";
+ TASKS.forEach(t=>{
+  let prog=taskProgress(t.id);
+  let div=document.createElement("div");
+  div.className="task";
+  div.innerHTML=`<div class="tname">${t.name}</div>
+   <div class="tdesc">${t.desc} · 奖励: ${t.rdesc}</div>
+   <div class="tiers">${t.tiers.map((need,k)=>{
+    let key=t.id+"_"+k,claimed=S.taskClaimed[key],done=prog>=need;
+    return `<div class="tier ${claimed?"done":(done?"can":"")}" onclick="${done&&!claimed?`claimTask(${t.id},${k})`:""}">${claimed?"✓ ":""}${Math.min(prog,need)}/${need}</div>`;
+   }).join("")}</div>`;
+  tl.appendChild(div);
+ });
 }
 
 // ============ 主循环 ============
@@ -281,9 +379,15 @@ function tick(){
  S.coins+=totalRate()*dt;
  // 顾客数随产出累积 (简化: 每产出10币=1客)
  S.cust+=totalRate()*dt/10;
+ S.onlineSec+=dt;
+ // 特殊顾客生成: 距上次接待 2-5 分钟随机; 30秒后消失
+ if(!S.special&&(now-S.specialAt>120000+Math.random()*180000))newSpecial();
+ if(S.special&&now>S.special.until){S.special=null;S.specialAt=now;}
  document.getElementById("coins").textContent=fmt(S.coins);
  document.getElementById("perSec").textContent="+"+totalRate().toFixed(1)+"/s";
  document.getElementById("custDone").textContent=Math.floor(S.cust);
+ // 特殊顾客横幅与任务页按需刷新
+ if(S.special||document.getElementById("pageTasks").classList.contains("on"))render();
 }
 setInterval(tick,200);
 
