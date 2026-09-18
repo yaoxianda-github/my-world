@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>老街新生 · MVP</title>
+<style>
+  :root{
+    --paper:#F6EFE3; --card:#FFFDF8; --ink:#46352A; --ink2:#7A6A58;
+    --brown:#8A5A33; --orange:#D97E3D; --brick:#B85C3C; --green:#7A8F6E;
+    --gold:#C9A227; --line:#D8C8B2; --red:#C0392B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{background:#EFE6D6;color:var(--ink);font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;overflow:hidden}
+  #app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--paper);position:relative;box-shadow:0 0 30px rgba(90,60,30,.15)}
+
+  /* ===== 顶栏 ===== */
+  .topbar{flex:none;background:linear-gradient(180deg,#E9D9BE,#F4E9D4);border-bottom:1px solid var(--line);padding:10px 14px}
+  .coins{font-size:28px;font-weight:800;color:var(--brown);letter-spacing:.5px;display:flex;align-items:baseline;gap:8px}
+  .coins .unit{font-size:12px;color:var(--ink2);font-weight:600}
+  .per-sec{font-size:12px;color:var(--orange);font-weight:700}
+  .meta-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .chip{font-size:11px;font-weight:700;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px 9px;color:var(--ink2)}
+  .chip b{color:var(--brick)}
+  .pros-bar{margin-top:8px}
+  .pros-label{display:flex;justify-content:space-between;font-size:11px;color:var(--ink2);margin-bottom:3px}
+  .pros-track{height:10px;background:#E4D5BC;border-radius:6px;overflow:hidden}
+  .pros-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--gold));transition:width .3s}
+
+  /* ===== 街道 ===== */
+  .street{flex:1;overflow-y:auto;background:linear-gradient(180deg,#F0E3CA 0%,#E3CDA4 100%);padding:12px}
+  .street-title{font-size:12px;color:var(--ink2);letter-spacing:3px;text-align:center;margin-bottom:10px}
+  .shop-list{display:flex;flex-direction:column;gap:10px}
+  .shop{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--brown);border-radius:12px;padding:10px;cursor:pointer;transition:transform .1s}
+  .shop:active{transform:scale(.98)}
+  .shop.locked{border-style:dashed;opacity:.7;background:rgba(255,253,248,.6)}
+  .shop .roof{width:44px;height:44px;flex:none;background:var(--brick);border-radius:8px;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center}
+  .shop .info{flex:1;min-width:0}
+  .shop .sname{font-size:15px;font-weight:800}
+  .shop .smeta{font-size:11px;color:var(--ink2);margin-top:2px}
+  .shop .right{text-align:right;flex:none}
+  .shop .rate{font-size:13px;color:var(--orange);font-weight:800}
+  .shop .lv{font-size:10px;color:var(--gold);font-weight:700;margin-top:2px}
+  .shop .cost{font-size:11px;color:var(--green);font-weight:700;margin-top:3px}
+  .shop .cost.cant{color:var(--red)}
+  .lock-info{font-size:11px;color:var(--ink2);margin-top:2px}
+
+  /* ===== 底部 tab ===== */
+  .tabs{flex:none;display:flex;border-top:1px solid var(--line);background:var(--card)}
+  .tab{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;color:var(--ink2);cursor:pointer}
+  .tab.on{color:var(--brick);background:var(--paper)}
+  .tab .badge{display:inline-block;background:var(--red);color:#fff;font-size:9px;border-radius:8px;padding:0 5px;margin-left:3px}
+
+  /* ===== 卡牌页 ===== */
+  .page{flex:1;overflow-y:auto;display:none;padding:12px}
+  .page.on{display:block}
+  .draw-row{display:flex;gap:10px;margin-bottom:12px}
+  .btn{flex:1;background:var(--orange);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer}
+  .btn:active{opacity:.85}
+  .btn.ghost{background:var(--card);color:var(--brown);border:1.5px solid var(--brown)}
+  .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .card{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:9px;font-size:11px}
+  .card.rare{border-color:var(--gold);box-shadow:0 0 6px rgba(201,162,39,.3)}
+  .card .cn{font-weight:800;font-size:12px}
+  .card .cd{color:var(--ink2);margin-top:3px;line-height:1.4}
+  .card .owned{display:inline-block;background:var(--green);color:#fff;font-size:9px;border-radius:6px;padding:0 5px;margin-left:4px}
+
+  /* ===== toast / 弹窗 ===== */
+  #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(70,53,42,.92);color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99}
+  #toast.show{opacity:1}
+  .settle-row{flex:none;padding:10px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+  .settle-info{flex:1;font-size:11px;color:var(--ink2)}
+  .settle-info b{color:var(--brick);font-size:13px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="coins"><span id="coins">0</span><span class="unit">币</span></div>
+    <div class="per-sec" id="perSec">+0.0/s</div>
+    <div class="meta-row">
+      <span class="chip">第 <b id="day">1</b> 天</span>
+      <span class="chip">繁荣 <b id="prosper">0</b></span>
+      <span class="chip">租金 <b id="rentNow">0</b></span>
+    </div>
+    <div class="pros-bar">
+      <div class="pros-label"><span>繁荣值</span><span id="prosNext">下一店: 260</span></div>
+      <div class="pros-track"><div class="pros-fill" id="prosFill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="page on" id="pageStreet">
+    <div class="street" style="padding:0">
+      <div class="street-title">— 老 街 —</div>
+      <div class="shop-list" id="shopList"></div>
+    </div>
+  </div>
+
+  <div class="page" id="pageCards">
+    <div class="draw-row">
+      <button class="btn" id="drawBtn">抽卡 · 5000币</button>
+      <button class="btn ghost" id="adBtn">看广告翻倍今日离线</button>
+    </div>
+    <div class="card-grid" id="cardGrid"></div>
+  </div>
+
+  <div class="settle-row">
+    <div class="settle-info">完成顾客 <b id="custDone">0</b>/<span id="custTarget">60</span><br>租金明日 <b id="rentNext">230</b></div>
+    <button class="btn" id="settleBtn" style="flex:none;padding:12px 18px">结算 · 推进一天</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-page="pageStreet">街道</div>
+    <div class="tab" data-page="pageCards">卡牌 <span class="badge" id="cardBadge" style="display:none">!</span></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ============ 逆向参数 (对齐 economy_sim / 数值文档 §3.4) ============
+const SHOPS=[
+ {name:"配钥匙铺", T0:100,S0:10,a_t:.12,r_s:1.08,C0:50,r_c:1.10,unlock:0,   build:0,    icon:"🔑"},
+ {name:"自行车铺", T0:120,S0:12,a_t:.12,r_s:1.08,C0:60,r_c:1.10,unlock:260, build:5000, icon:"🚲"},
+ {name:"纪念品铺", T0:140,S0:15,a_t:.12,r_s:1.08,C0:80,r_c:1.10,unlock:500, build:12000,icon:"🎁"},
+ {name:"茶馆",     T0:160,S0:18,a_t:.12,r_s:1.08,C0:100,r_c:1.10,unlock:900, build:20000,icon:"🍵"},
+ {name:"书画斋",   T0:180,S0:22,a_t:.12,r_s:1.09,C0:130,r_c:1.11,unlock:1500,build:30000,icon:"🖼️"},
+];
+const PROSP_GAIN={0:[[1,10,5],[11,30,8]],1:[[1,10,6]],2:[[1,20,10]],3:[[1,10,9],[11,30,12]],4:[[1,20,12]]};
+const MILESTONES=[[110,"+5000币",5000],[500,"+3600加速",0],[1000,"广告翻倍",0],[2000,"抽卡",0]];
+const CARDS=[
+ {id:1001,rar:"common",name:"老主顾",type:"add",target:"traffic",val:.15},
+ {id:1002,rar:"common",name:"招牌",type:"add",target:"spend",val:.20},
+ {id:1003,rar:"rare",name:"人气网红",type:"mult",target:"traffic",val:.25},
+ {id:1004,rar:"rare",name:"老街物业",type:"add",target:"rent",val:.10},
+ {id:1005,rar:"common",name:"熟客",type:"add",target:"traffic",val:.10},
+ {id:1006,rar:"common",name:"公道价",type:"add",target:"spend",val:.10},
+ {id:1007,rar:"common",name:"街坊关系",type:"add",target:"rent",val:.05},
+ {id:1008,rar:"rare",name:"匠心手作",type:"mult",target:"spend",val:.20},
+];
+const P={eta:.5,tOffMax:8*3600,kAd:2,promo:.5,gMax:10,rentBase:200,rRent:1.15,cust:[60,80,100,125,150]};
+
+// ============ 状态 ============
+const KEY="laojie_mvp_v1";
+let S;
+function defaultState(){return{coins:0,prosper:0,day:1,owe:0,
+ shops:[{lv:1,on:true},{lv:1,on:false},{lv:1,on:false},{lv:1,on:false},{lv:1,on:false}],
+ cards:[],msHit:[],cust:0,adUsed:false,last:Date.now()};}
+function save(){S.last=Date.now();localStorage.setItem(KEY,JSON.stringify(S));}
+function load(){try{let d=JSON.parse(localStorage.getItem(KEY));return d||defaultState();}catch(e){return defaultState();}}
+S=load();
+
+// ============ 数值函数 ============
+function gEff(){
+ let add=P.promo,mult=0,rentRed=0;
+ S.cards.forEach(cid=>{let cd=CARDS[cid-1001];if(!cd)return;
+  if(cd.target==="rent")rentRed+=cd.val;
+  else if(cd.type==="mult")mult+=cd.val;else add+=cd.val;});
+ return{g:Math.min((1+add)*(1+mult),P.gMax),rentRed};
+}
+function shopRate(i){let sh=SHOPS[i],lv=S.shops[i].lv;
+ return sh.T0*(1+sh.a_t*(lv-1))*sh.S0*Math.pow(sh.r_s,lv-1)/3600;}
+function totalRate(){let{g}=gEff();
+ return SHOPS.reduce((r,sh,i)=>r+(S.shops[i].on?shopRate(i)*g:0),0);}
+function upCost(i){let sh=SHOPS[i];return sh.C0*Math.pow(sh.r_c,S.shops[i].lv-1);}
+function prospGain(i,lv){let arr=PROSP_GAIN[i]||[[1,999,5]];
+ for(let[a,b,g]of arr)if(lv>=a&&lv<=b)return g;return arr[arr.length-1][2];}
+function rentDay(d){return P.rentBase*Math.pow(P.rRent,d-1);}
+function custTarget(d){return P.cust[Math.min(d-1,P.cust.length-1)];}
+function fmt(n){if(n>=1e9)return(n/1e9).toFixed(2)+"B";if(n>=1e6)return(n/1e6).toFixed(2)+"M";
+ if(n>=1e3)return(n/1e3).toFixed(1)+"K";return n.toFixed(0);}
+
+// ============ 操作 ============
+function toast(t){let el=document.getElementById("toast");el.textContent=t;el.classList.add("show");
+ clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),1800);}
+function checkMilestones(){
+ MILESTONES.forEach(([thr,label,amt])=>{
+  if(S.prosper>=thr&&!S.msHit.includes(thr)){S.msHit.push(thr);
+   if(amt>0)S.coins+=amt;toast(`繁荣${thr} 里程碑: ${label}`);}});
+}
+function upgrade(i){
+ if(!S.shops[i].on)return;
+ let c=upCost(i);if(S.coins<c){toast("金币不足");return;}
+ S.coins-=c;S.shops[i].lv++;S.prosper+=prospGain(i,S.shops[i].lv);
+ checkMilestones();save();render();
+}
+function tryUnlock(i){
+ if(S.shops[i].on)return;let sh=SHOPS[i];
+ if(S.prosper>=sh.unlock&&S.coins>=sh.build){
+  S.coins-=sh.build;S.shops[i].on=true;toast(`🏠 解锁新店: ${sh.name}`);save();render();
+ }else if(S.prosper>=sh.unlock){toast("金币不足, 无法修建");}
+}
+function settle(){
+ // 结算: 扣当日租金(含欠租+卡牌减免), day+1, 顾客重置
+ let{g,rentRed}=gEff();
+ let rt=rentDay(S.day)*(1-rentRed);
+ if(S.owe>0){rt+=S.owe;S.owe=0;}
+ if(S.coins>=rt){S.coins-=rt;}else{S.owe+=rt-S.coins;S.coins=0;}
+ S.day++;S.cust=0;S.adUsed=false;
+ toast(`第${S.day}天开始 · 已付租金${fmt(rt)}`);save();render();
+}
+function drawCard(){
+ let cost=5000;if(S.coins<cost){toast("抽卡需5000币");return;}
+ S.coins-=cost;let id=1001+Math.floor(Math.random()*8);
+ S.cards.push(id);let cd=CARDS[id-1001];
+ toast(`抽到 [${cd.rar==="rare"?"稀有":"普通"}] ${cd.name}`);save();render();
+}
+function adDouble(){
+ if(S.adUsed){toast("今日已用过广告翻倍");return;}
+ // 占位: 模拟看广告后, 立即补一笔离线收益×k_ad
+ let gain=totalRate()*3600*P.eta*P.kAd;
+ S.coins+=gain;S.adUsed=true;toast(`广告翻倍: +${fmt(gain)}币`);save();render();
+}
+
+// ============ 离线结算 ============
+function offlineGain(){
+ let now=Date.now();let dt=(now-S.last)/1000;
+ if(dt<10)return;
+ let cap=Math.min(dt,P.tOffMax);
+ let gain=totalRate()*cap*P.eta;
+ if(gain>50){S.coins+=gain;toast(`离线${Math.floor(cap/60)}分钟收益 +${fmt(gain)}币`);}
+}
+
+// ============ 渲染 ============
+function render(){
+ document.getElementById("coins").textContent=fmt(S.coins);
+ document.getElementById("perSec").textContent="+"+totalRate().toFixed(1)+"/s";
+ document.getElementById("day").textContent=S.day;
+ document.getElementById("prosper").textContent=Math.floor(S.prosper);
+ document.getElementById("rentNow").textContent=fmt(rentDay(S.day));
+ document.getElementById("custDone").textContent=Math.floor(S.cust);
+ document.getElementById("custTarget").textContent=custTarget(S.day);
+ document.getElementById("rentNext").textContent=fmt(rentDay(S.day+1));
+ // 繁荣进度: 找下一个未解锁店
+ let next=SHOPS.findIndex(s=>!S.shops[SHOPS.indexOf(s)].on);
+ let nextThr=next>=0?SHOPS[next].unlock:2000;
+ document.getElementById("prosNext").textContent=next>=0?`下一店: ${SHOPS[next].name}(${nextThr})`:"全部已解锁";
+ document.getElementById("prosFill").style.width=Math.min(100,S.prosper/nextThr*100)+"%";
+ // 店铺列表
+ let list=document.getElementById("shopList");list.innerHTML="";
+ SHOPS.forEach((sh,i)=>{
+  let st=S.shops[i];
+  let div=document.createElement("div");
+  div.className="shop"+(st.on?"":" locked");
+  if(st.on){
+   let c=upCost(i),r=shopRate(i)*gEff().g;
+   div.innerHTML=`<div class="roof">${sh.icon}</div>
+    <div class="info"><div class="sname">${sh.name}</div>
+     <div class="smeta">Lv.${st.lv} · 客流${Math.round(sh.T0*(1+sh.a_t*(st.lv-1)))}/h</div></div>
+    <div class="right"><div class="rate">${fmt(r)}/s</div>
+     <div class="cost ${S.coins>=c?"":"cant"}">升级 ${fmt(c)}</div></div>`;
+   div.onclick=()=>upgrade(i);
+  }else{
+   let can=S.prosper>=sh.unlock&&S.coins>=sh.build;
+   div.innerHTML=`<div class="roof">🔒</div>
+    <div class="info"><div class="sname">${sh.name} ?</div>
+     <div class="lock-info">繁荣${sh.unlock} + 金币${fmt(sh.build)}</div>
+     <div class="lock-info">需繁荣${fmt(sh.unlock)} (现${fmt(S.prosper)})</div></div>
+    <div class="right"><div class="lv">${S.prosper>=sh.unlock?"可修建":"未解锁"}</div></div>`;
+   div.onclick=()=>tryUnlock(i);
+  }
+  list.appendChild(div);
+ });
+ // 卡牌
+ let grid=document.getElementById("cardGrid");grid.innerHTML="";
+ CARDS.forEach(cd=>{
+  let owned=S.cards.includes(cd.id);
+  let div=document.createElement("div");
+  div.className="card"+(cd.rar==="rare"?" rare":"");
+  div.innerHTML=`<div class="cn">${cd.icon||""}${cd.name}${owned?'<span class="owned">已持</span>':""}</div>
+   <div class="cd">${cd.rar==="rare"?"稀有":"普通"} · ${cd.type==="mult"?"乘区":"加区"}<br>
+   ${{traffic:"客流量",spend:"客单价",rent:"租金减免"}[cd.target]} +${Math.round(cd.val*100)}%</div>`;
+  grid.appendChild(div);
+ });
+}
+
+// ============ 主循环 ============
+let lastFrame=Date.now();
+function tick(){
+ let now=Date.now();let dt=(now-lastFrame)/1000;lastFrame=now;
+ S.coins+=totalRate()*dt;
+ // 顾客数随产出累积 (简化: 每产出10币=1客)
+ S.cust+=totalRate()*dt/10;
+ document.getElementById("coins").textContent=fmt(S.coins);
+ document.getElementById("perSec").textContent="+"+totalRate().toFixed(1)+"/s";
+ document.getElementById("custDone").textContent=Math.floor(S.cust);
+}
+setInterval(tick,200);
+
+// ============ 绑定 ============
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+ document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));
+ t.classList.add("on");document.getElementById(t.dataset.page).classList.add("on");
+});
+document.getElementById("settleBtn").onclick=settle;
+document.getElementById("drawBtn").onclick=drawCard;
+document.getElementById("adBtn").onclick=adDouble;
+
+// 启动
+offlineGain();
+render();
+setInterval(save,5000);
+window.addEventListener("beforeunload",save);
+</script>
+</body>
+</html>
