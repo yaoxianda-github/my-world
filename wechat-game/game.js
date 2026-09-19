@@ -43,7 +43,7 @@ function main() {
     last = now;
     Core.tick(dt);
     Render.draw(ctx, Core, W, H);
-    canvas.requestAnimationFrame(loop);
+    (typeof requestAnimationFrame!=='undefined'?requestAnimationFrame:(cb=>setTimeout(cb,16)))(loop);
   }
   loop();
 
