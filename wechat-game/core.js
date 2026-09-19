@@ -213,4 +213,5 @@ global.Core = {
   toast: toast, getToast: function () { return _toast; }
 };
 
+if (typeof module !== "undefined" && module.exports) module.exports = Core;
 })(typeof window !== "undefined" ? window : globalThis);

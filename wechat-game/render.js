@@ -478,5 +478,6 @@ function getPage() { return page; }
 
 loadImages();
 global.Render = { draw: draw, onTouchStart: onTouchStart, onTouchMove: onTouchMove, onTouchEnd: onTouchEnd, getPage: getPage };
+if (typeof module !== "undefined" && module.exports) module.exports = global.Render;
 
 })(typeof window !== "undefined" ? window : globalThis);
