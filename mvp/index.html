@@ -105,15 +105,14 @@
   /* ===== 院子主场景 (复刻竞品近景实景, 2026-09-19) ===== */
   .yard{position:relative;flex:1;overflow:hidden;background:#E8D5B5}
   .yard-bg{position:absolute;inset:0;width:100%;height:100%}
-  .shop-face{position:absolute;left:50%;top:300px;transform:translateX(-50%);width:150px;height:150px;cursor:pointer;z-index:4}
-  .door-frame{position:absolute;inset:0;background:#6B4A2E;border-radius:6px 6px 0 0;box-shadow:0 4px 10px rgba(60,40,20,.3)}
-  .door-leaf{position:absolute;left:14px;right:14px;bottom:0;top:16px;background:#8A5A33;border-radius:4px}
-  .door-leaf::before{content:"";position:absolute;left:50%;top:18%;width:2px;height:64%;background:#6B4A2E;transform:translateX(-50%)}
-  .door-knob{position:absolute;right:22px;top:52%;width:8px;height:8px;border-radius:50%;background:#C9A227;box-shadow:0 0 4px #C9A227}
-  .shop-sign{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#8A5A33;color:#FFF8E8;
+  .shop-face{position:absolute;left:50%;top:40%;transform:translateX(-50%);width:44%;height:34%;cursor:pointer;z-index:4}
+  .door-frame{position:absolute;inset:0;background:transparent;border-radius:6px}
+  .door-leaf{display:none}
+  .door-knob{display:none}
+  .shop-sign{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#8A5A33;color:#FFF8E8;
     font-size:13px;font-weight:800;padding:5px 14px;border-radius:6px 6px 0 0;white-space:nowrap;
     box-shadow:0 -2px 6px rgba(60,40,20,.2);border:1.5px solid #6B4A2E;border-bottom:none}
-  .shop-tag{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);background:rgba(70,53,42,.85);
+  .shop-tag{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);background:rgba(70,53,42,.85);
     color:#FFD980;font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;white-space:nowrap}
   .yard-npcs{position:absolute;left:0;right:0;bottom:120px;height:60px;pointer-events:none;z-index:5}
   .yard-npcs .npc{position:absolute;animation:walkAcross 26s ease-in-out infinite,bob 1.2s ease-in-out infinite alternate}
@@ -255,42 +254,7 @@
 
   <div class="page on" id="pageStreet">
     <div class="yard" id="yard">
-      <svg class="yard-bg" viewBox="0 0 480 640" preserveAspectRatio="xMidYMax slice">
-        <!-- 远处天空 -->
-        <rect x="0" y="0" width="480" height="640" fill="#E8D5B5"/>
-        <!-- 远处灰瓦屋顶 -->
-        <g><rect x="0" y="60" width="480" height="60" fill="#8A7A66"/>
-        <path d="M0 60 Q60 40 120 60 T240 60 T360 60 T480 60 V90 H0 Z" fill="#6E6152"/></g>
-        <!-- 大槐树(左侧) -->
-        <g><rect x="60" y="180" width="16" height="180" fill="#6B4A2E" rx="4"/>
-        <circle cx="68" cy="150" r="70" fill="#5C7050"/>
-        <circle cx="30" cy="180" r="46" fill="#6E8A5C"/>
-        <circle cx="105" cy="175" r="42" fill="#7A8F6E"/>
-        <path d="M55 220q5 40-8 70M80 225q-3 50 10 75" stroke="#5C7050" stroke-width="4" fill="none" opacity=".6"/></g>
-        <!-- 右侧绿植/盆栽 -->
-        <g><rect x="400" y="330" width="46" height="40" rx="4" fill="#8A5A33"/>
-        <circle cx="423" cy="310" r="30" fill="#7A8F6E"/><circle cx="408" cy="320" r="18" fill="#8CA084"/><circle cx="438" cy="318" r="16" fill="#6E8A5C"/></g>
-        <!-- 后墙(砖) -->
-        <rect x="0" y="240" width="480" height="200" fill="#C89B6E"/>
-        <g stroke="#B0855A" stroke-width="1.5" opacity=".7">
-          <path d="M0 270h480M0 300h480M0 330h480M0 360h480M0 390h480M0 420h480"/>
-          <path d="M40 240v30M120 270v30M200 240v30M280 270v30M360 240v30M440 270v30"/>
-        </g>
-        <!-- 青瓦压顶 -->
-        <rect x="0" y="232" width="480" height="14" fill="#6E6152"/>
-        <g fill="#7D6E5C"><rect x="10" y="228" width="22" height="10" rx="3"/><rect x="50" y="228" width="22" height="10" rx="3"/><rect x="90" y="228" width="22" height="10" rx="3"/><rect x="130" y="228" width="22" height="10" rx="3"/><rect x="170" y="228" width="22" height="10" rx="3"/><rect x="210" y="228" width="22" height="10" rx="3"/><rect x="250" y="228" width="22" height="10" rx="3"/><rect x="290" y="228" width="22" height="10" rx="3"/><rect x="330" y="228" width="22" height="10" rx="3"/><rect x="370" y="228" width="22" height="10" rx="3"/><rect x="410" y="228" width="22" height="10" rx="3"/><rect x="450" y="228" width="22" height="10" rx="3"/></g>
-        <!-- 地面石板 -->
-        <rect x="0" y="440" width="480" height="200" fill="#BFA078"/>
-        <g stroke="#A8885F" stroke-width="2" opacity=".6">
-          <path d="M0 490h480M0 540h480M0 590h480"/>
-          <path d="M80 440v50M200 490v50M320 440v50M140 540v50M280 540v50M400 590v50"/>
-        </g>
-        <!-- 左侧花草 -->
-        <g><circle cx="30" cy="455" r="9" fill="#D97E3D"/><circle cx="48" cy="462" r="7" fill="#C0392B"/><circle cx="20" cy="468" r="6" fill="#E8B48A"/><path d="M30 464v16M48 469v13M20 474v11" stroke="#5C7050" stroke-width="2.5"/></g>
-        <!-- 门口石阶 -->
-        <rect x="180" y="430" width="120" height="14" fill="#9A8060"/>
-        <rect x="172" y="444" width="136" height="12" fill="#8A7050"/>
-      </svg>
+      <img class="yard-bg" src="assets/yard.png" alt="">
       <!-- 店铺门脸(随店切换) -->
       <div class="shop-face" id="shopFace">
         <div class="door" id="shopDoor">
