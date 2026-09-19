@@ -16,7 +16,7 @@
   #app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--paper);position:relative;box-shadow:0 0 30px rgba(90,60,30,.15)}
 
   /* ===== 顶栏 ===== */
-  .topbar{flex:none;background:linear-gradient(180deg,#E9D9BE,#F4E9D4);border-bottom:1px solid var(--line);padding:10px 14px}
+  .topbar{flex:none;position:relative;z-index:3;background:linear-gradient(180deg,#E9D9BE,#F4E9D4);border-bottom:1px solid var(--line);padding:10px 14px}
   .coins{font-size:28px;font-weight:800;color:var(--brown);letter-spacing:.5px;display:flex;align-items:baseline;gap:8px}
   .coins .unit{font-size:12px;color:var(--ink2);font-weight:600}
   .per-sec{font-size:12px;color:var(--orange);font-weight:700}
@@ -103,8 +103,8 @@
   .sp-banner .sp-info small{display:block;font-weight:500;font-size:10px;opacity:.9}
   .sp-banner .sp-btn{background:var(--brick);color:#fff;border:none;border-radius:14px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer}
   /* ===== 院子主场景 (复刻竞品近景实景, 2026-09-19) ===== */
-  .yard{position:relative;flex:1;overflow:hidden;background:#E8D5B5}
-  .yard-bg{position:absolute;inset:0;width:100%;height:100%}
+  .yard{position:relative;flex:1;overflow:hidden;background:transparent}
+  .yard-bg{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
   .shop-face{position:absolute;left:50%;top:40%;transform:translateX(-50%);width:44%;height:34%;cursor:pointer;z-index:4}
   .door-frame{position:absolute;inset:0;background:transparent;border-radius:6px}
   .door-leaf{display:none}
@@ -134,7 +134,7 @@
   .side-ic span{font-size:18px;display:block}
   .side-ic em{font-style:normal;font-size:10px;font-weight:700;display:block;margin-top:2px}
   /* 底部五按钮 */
-  .bottom-bar{flex:none;display:flex;align-items:flex-end;justify-content:space-around;
+  .bottom-bar{flex:none;position:relative;z-index:3;display:flex;align-items:flex-end;justify-content:space-around;
     background:linear-gradient(180deg,#7A5A38,#5C4228);padding:8px 8px 10px;border-top:2px solid #4A3520}
   .bb-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
     background:#8A5A33;border:1.5px solid #6B4A2E;border-radius:10px;margin:0 3px;padding:7px 2px;
@@ -200,7 +200,8 @@
   .tab .badge{display:inline-block;background:var(--red);color:#fff;font-size:9px;border-radius:8px;padding:0 5px;margin-left:3px}
 
   /* ===== 卡牌页 ===== */
-  .page{flex:1;overflow-y:auto;display:none;padding:12px}
+  .page{flex:1;overflow-y:auto;display:none;padding:12px;position:relative;z-index:2}
+  #pageCards,#pageTasks{background:rgba(46,34,24,.66);backdrop-filter:blur(3px)}
   .page.on{display:block}
   #pageStreet.on{display:flex;flex-direction:column;padding:0;overflow:hidden}
   .draw-row{display:flex;gap:10px;margin-bottom:12px}
@@ -259,9 +260,9 @@
     </div>
   </div>
 
+  <img class="yard-bg" src="assets/yard.png" alt="">
   <div class="page on" id="pageStreet">
     <div class="yard" id="yard">
-      <img class="yard-bg" src="assets/yard.png" alt="">
       <!-- 店铺门脸(随店切换) -->
       <div class="shop-face" id="shopFace">
         <div class="door" id="shopDoor">
