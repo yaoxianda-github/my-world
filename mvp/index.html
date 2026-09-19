@@ -560,7 +560,9 @@ function renderNPCs(){
 }
 // ============ 当前店铺门脸 (院子场景, PRD 8.1 复刻) ============
 let curShop=0;
+const SHOP_BG=["assets/yard.png","assets/shop1.png","assets/shop2.png","assets/shop3.png","assets/shop4.png"];
 function renderShopFace(){
+ document.querySelector(".yard-bg").src=SHOP_BG[curShop];
  let sh=SHOPS[curShop], st=S.shops[curShop];
  let sign=document.getElementById("shopSign");
  let tag=document.getElementById("shopTag");
