@@ -27,6 +27,7 @@ var C = {
 var BG_FILES = ["assets/yard.png", "assets/shop1.png", "assets/shop2.png", "assets/shop3.png", "assets/shop4.png"];
 var BGS = [];
 var curShop = 0;
+var openShop = -1;   // >=0 时弹升级面板
 function loadImages() {
   var mk = (typeof wx !== "undefined" && wx.createImage) ? wx.createImage : function () { return new Image(); };
   BG_FILES.forEach(function (f) {
@@ -215,7 +216,7 @@ function drawYard(ctx, Core, t) {
   ctx.fillStyle = "rgba(70,53,42,.85)"; ctx.fill();
   text(ctx, tag, cx, sy + shh + 18, 11, "#FFD980", true, "center");
   // 门热区
-  hitAreas.push({ x: cx - 72, y: sy - 12, w: 144, h: yh * 0.46, id: st.on ? ("panel:" + curShop) : ("unlock:" + curShop) });
+  hitAreas.push({ x: cx - 72, y: sy - 12, w: 144, h: yh * 0.46, id: st.on ? ("open:" + curShop) : ("unlock:" + curShop) });
   // 左右切店箭头
   var ay = top + yh * 0.44, ah = 54;
   ctx.fillStyle = "rgba(110,80,50,.55)";
@@ -238,6 +239,42 @@ function drawYard(ctx, Core, t) {
     rr(ctx, W - 92, by + 6, 80, 28, 14); ctx.fillStyle = C.brick; ctx.fill();
     text(ctx, "接待", W - 52, by + 20, 13, "#fff", true, "center");
   }
+  // 升级面板
+  if (openShop >= 0) drawPanel(ctx, Core);
+}
+
+// ---------- 升级面板 (木牌旧纸风) ----------
+function drawPanel(ctx, Core) {
+  var S = Core.S, fmt = Core.fmt;
+  var sh = Core.SHOPS[openShop], st = S.shops[openShop];
+  // 遮罩
+  ctx.fillStyle = "rgba(40,30,20,.5)";
+  ctx.fillRect(0, TOP_H, W, H - TOP_H);
+  hitAreas.push({ x: 0, y: TOP_H, w: W, h: H - TOP_H, id: "closePanel" });
+  // 面板
+  var ph = 250, py = H - ph;
+  ctx.fillStyle = "#F3E4C4";
+  ctx.fillRect(0, py, W, ph);
+  ctx.fillStyle = "#6B4A2E"; ctx.fillRect(0, py, W, 3);
+  // 木标题
+  rr(ctx, 16, py + 14, W - 32, 34, 8);
+  ctx.fillStyle = "#8A5A33"; ctx.fill();
+  text(ctx, "🔑 " + sh.name + " · Lv." + st.lv, W / 2, py + 31, 16, "#FFF8E8", true, "center");
+  // 统计
+  var flow = Math.round(sh.T0 * (1 + sh.a_t * (st.lv - 1)) * Core.gEff().traff || 0);
+  text(ctx, "客流 " + flow + "/h", 24, py + 68, 12, "#6B4A2E", true);
+  text(ctx, "客单价 " + Math.round(sh.C0 * (1 + sh.r_c * (st.lv - 1)) * Core.gEff().spend || 0), 200, py + 68, 12, "#6B4A2E", true);
+  var rate = Core.shopRate(openShop) * Core.gEff().g;
+  text(ctx, "当前产出 +" + fmt(rate) + "/s", 24, py + 92, 13, "#B85C3C", true);
+  // 升级按钮
+  var cost = Core.upCost(openShop);
+  rr(ctx, 16, py + 110, W - 32, 52, 12);
+  ctx.fillStyle = S.coins >= cost ? "#D97E3D" : "#9A8870"; ctx.fill();
+  text(ctx, "升级 " + fmt(cost) + " 币", W / 2, py + 136, 17, "#fff", true, "center");
+  hitAreas.push({ x: 16, y: py + 110, w: W - 32, h: 52, id: "upg" });
+  text(ctx, "点击升级 · 可连升", W / 2, py + 180, 11, "#8A6A4A", false, "center");
+  // 关闭 X
+  text(ctx, "✕", W - 24, py + 31, 18, "#FFF8E8", true, "center");
 }
 
 // ---------- 卡牌页 (木牌原画风) ----------
@@ -418,7 +455,9 @@ function onTouchEnd(x, y, Core) {
       } else if (id === "special") Core.serveSpecial();
       else if (id === "prev") { curShop = (curShop + Core.SHOPS.length - 1) % Core.SHOPS.length; }
       else if (id === "next") { curShop = (curShop + 1) % Core.SHOPS.length; }
-      else if (id.indexOf("panel:") === 0) Core.upgrade(parseInt(id.slice(6)));
+      else if (id.indexOf("open:") === 0) { openShop = parseInt(id.slice(5)); }
+      else if (id === "upg") { if (openShop >= 0) Core.upgrade(openShop); }
+      else if (id === "closePanel") { openShop = -1; }
       else if (id.indexOf("unlock:") === 0) Core.tryUnlock(parseInt(id.slice(7)));
       else if (id === "back") { page = "street"; }
       else if (id === "btasks") { page = "tasks"; }
