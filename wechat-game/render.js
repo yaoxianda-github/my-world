@@ -24,7 +24,7 @@ var C = {
 };
 
 // ---------- 院子原画 (5店) ----------
-var BG_FILES = ["assets/yard.png", "assets/shop1.png", "assets/shop2.png", "assets/shop3.png", "assets/shop4.png"];
+var BG_FILES = ["assets/yard.jpg", "assets/shop1.jpg", "assets/shop2.jpg", "assets/shop3.jpg", "assets/shop4.jpg"];
 var BGS = [];
 var curShop = 0;
 var openShop = -1;   // >=0 时弹升级面板
