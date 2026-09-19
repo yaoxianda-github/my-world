@@ -75,28 +75,102 @@ function drawTop(ctx, Core) {
   ctx.fill();
 }
 
-// ---------- 背景云 (2026-09-19) ----------
-function drawClouds(ctx, t) {
-  var grad = ctx.createLinearGradient(0, TOP_H, 0, H);
-  grad.addColorStop(0, "#F0E3CA"); grad.addColorStop(1, "#E3CDA4");
-  ctx.fillStyle = grad; ctx.fillRect(0, TOP_H, W, H - TOP_H);
-  var clouds = [
-    { w: 118, h: 30, y: TOP_H + 26, sp: 0.020, o: 0.60 },
-    { w: 78,  h: 22, y: TOP_H + 70, sp: 0.013, o: 0.45 },
-    { w: 150, h: 36, y: TOP_H + 118, sp: 0.011, o: 0.40 }
-  ];
-  clouds.forEach(function (c) {
-    var prog = (t * c.sp) % 1;
-    var x = W + 80 - prog * (W + 260);
+// ---------- 老街远景长卷 (铺开动画: 人+房屋+烟火气, 2026-09-19) ----------
+function drawPanoUnit(ctx, t) {
+  // 与 DOM 版 SVG 同布局 (600x100) + 烟火气: 炊烟/幌子/早点摊/晾衣/街猫/灯笼
+  ctx.fillStyle = "rgba(255,249,239,.55)";
+  ctx.beginPath(); ctx.moveTo(0, 74);
+  ctx.quadraticCurveTo(60, 44, 130, 70); ctx.quadraticCurveTo(200, 34, 280, 68);
+  ctx.quadraticCurveTo(360, 50, 430, 68); ctx.quadraticCurveTo(520, 42, 600, 70);
+  ctx.lineTo(600, 100); ctx.lineTo(0, 100); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = .85; ctx.fillStyle = "#D8C2A0"; ctx.fillRect(0, 80, 600, 20); ctx.globalAlpha = 1;
+  ctx.strokeStyle = "#CBB28A"; ctx.lineWidth = 1.5;
+  [90, 185, 278, 372, 466, 560].forEach(function (px) { ctx.beginPath(); ctx.moveTo(px, 80); ctx.lineTo(px, 86); ctx.stroke(); });
+  // 房子1 砖红: 炊烟
+  ctx.fillStyle = "#B85C3C"; ctx.fillRect(34, 56, 52, 28);
+  ctx.fillStyle = "#6B4A2E"; ctx.beginPath(); ctx.moveTo(28, 58); ctx.lineTo(60, 36); ctx.lineTo(92, 58); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#7A6A58"; ctx.fillRect(70, 38, 9, 18); ctx.fillStyle = "#5C4A33"; ctx.fillRect(68, 36, 13, 5);
+  for (var k = 0; k < 3; k++) {
+    var ph = ((t * 0.9 + k * 1.1) % 3) / 3;
+    ctx.beginPath(); ctx.arc(74.5 + ph * 4, 32 - ph * 16, 2.6 - ph * 0.8, 0, 7);
+    ctx.fillStyle = "rgba(236,228,210," + (0.75 * (1 - ph)) + ")"; ctx.fill();
+  }
+  ctx.fillStyle = "#46352A"; ctx.fillRect(52, 68, 16, 16);
+  // 树1
+  ctx.fillStyle = "#8A5A33"; ctx.fillRect(150, 62, 7, 18);
+  ctx.fillStyle = "#7A8F6E"; ctx.beginPath(); ctx.arc(153, 54, 13, 0, 7); ctx.fill();
+  ctx.fillStyle = "#8CA084"; ctx.beginPath(); ctx.arc(145, 60, 8, 0, 7); ctx.fill();
+  // 房子2 橙: 幌子(摆动)
+  ctx.fillStyle = "#D97E3D"; ctx.fillRect(210, 56, 56, 28);
+  ctx.fillStyle = "#8A5A33"; ctx.beginPath(); ctx.moveTo(204, 58); ctx.lineTo(238, 38); ctx.lineTo(272, 58); ctx.closePath(); ctx.fill();
+  var sw = Math.sin(t * 2.4) * 4;
+  ctx.fillStyle = "#C0392B"; ctx.beginPath(); ctx.moveTo(236, 56); ctx.lineTo(236 + sw * 0.3, 70); ctx.lineTo(248 + sw, 63); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#46352A"; ctx.fillRect(230, 68, 16, 16);
+  ctx.fillStyle = "#DCEAF2"; ctx.fillRect(250, 62, 8, 6);
+  // 早点摊: 伞+桌+热气
+  ctx.fillStyle = "#8A5A33"; ctx.fillRect(298, 66, 34, 18);
+  ctx.fillStyle = "#C9A227"; ctx.beginPath(); ctx.moveTo(290, 68); ctx.lineTo(296, 46); ctx.lineTo(300, 68); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(340, 68); ctx.lineTo(334, 46); ctx.lineTo(330, 68); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#DCEAF2"; ctx.fillRect(310, 58, 12, 6);
+  for (k = 0; k < 3; k++) {
+    ph = ((t * 0.9 + k * 1.1 + 0.5) % 3) / 3;
+    ctx.beginPath(); ctx.arc(316 + ph * 3, 54 - ph * 14, 2.4 - ph * 0.8, 0, 7);
+    ctx.fillStyle = "rgba(236,228,210," + (0.75 * (1 - ph)) + ")"; ctx.fill();
+  }
+  // 房子3 米墙绿顶: 晾衣(微摆)
+  ctx.fillStyle = "#EFE2C8"; ctx.fillRect(360, 56, 52, 28);
+  ctx.fillStyle = "#5C7050"; ctx.beginPath(); ctx.moveTo(354, 58); ctx.lineTo(386, 38); ctx.lineTo(418, 58); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#46352A"; ctx.fillRect(376, 70, 16, 14);
+  ctx.fillStyle = "#DCEAF2"; ctx.fillRect(396, 62, 8, 6);
+  ctx.fillStyle = "#8A5A33"; ctx.fillRect(352, 44, 3, 16); ctx.fillRect(414, 44, 3, 16);
+  ctx.strokeStyle = "#7A6A58"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(354, 46); ctx.lineTo(415, 46); ctx.stroke();
+  var cl = Math.sin(t * 2) * 2.5;
+  ctx.fillStyle = "#D97E3D"; ctx.save(); ctx.translate(371.5, 47); ctx.rotate(cl * 0.05); ctx.fillRect(-5.5, 0, 11, 13); ctx.restore();
+  ctx.fillStyle = "#7FB3A6"; ctx.save(); ctx.translate(389.5, 47); ctx.rotate(-cl * 0.05); ctx.fillRect(-5.5, 0, 11, 13); ctx.restore();
+  // 街猫
+  ctx.fillStyle = "#8A5A33"; ctx.beginPath(); ctx.arc(452, 72, 8, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(459, 66, 4.5, 0, 7); ctx.fill();
+  ctx.strokeStyle = "#8A5A33"; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(444, 72); ctx.quadraticCurveTo(439, 73, 440, 78); ctx.stroke();
+  // 树2
+  ctx.fillStyle = "#8A5A33"; ctx.fillRect(490, 64, 6, 16);
+  ctx.fillStyle = "#7A8F6E"; ctx.beginPath(); ctx.arc(493, 56, 11, 0, 7); ctx.fill();
+  // 房子4 金: 灯笼(摆动)
+  ctx.fillStyle = "#C9A227"; ctx.fillRect(530, 58, 46, 26);
+  ctx.fillStyle = "#6B4A2E"; ctx.beginPath(); ctx.moveTo(525, 60); ctx.lineTo(553, 42); ctx.lineTo(581, 60); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#46352A"; ctx.fillRect(548, 70, 14, 14);
+  var lg = Math.sin(t * 2.4 + 1) * 0.06;
+  ctx.fillStyle = "#C0392B"; ctx.save(); ctx.translate(569.5, 58); ctx.rotate(lg); rr(ctx, -3.5, 0, 7, 11, 3); ctx.fill();
+  ctx.strokeStyle = "#C0392B"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(0, 11); ctx.lineTo(0, 15); ctx.stroke(); ctx.restore();
+}
+function drawWalker(ctx, x, y, color, legPhase) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = "#E8B48A"; ctx.beginPath(); ctx.arc(0, -20, 5, 0, 7); ctx.fill();
+  ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(-6, 6); ctx.lineTo(6, 6); ctx.closePath(); ctx.fill();
+  var a = Math.sin(legPhase) * 0.38;
+  ctx.strokeStyle = "#46352A"; ctx.lineWidth = 2.6; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(-1.5, 6); ctx.lineTo(-1.5 + Math.sin(a) * 6, 20); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(1.5, 6); ctx.lineTo(1.5 + Math.sin(a + Math.PI) * 6, 20); ctx.stroke();
+  ctx.restore();
+}
+function drawPanorama(ctx, t) {
+  var top = TOP_H;
+  var grad = ctx.createLinearGradient(0, top, 0, top + 112);
+  grad.addColorStop(0, "#EFE3C8"); grad.addColorStop(1, "#DFC79E");
+  ctx.fillStyle = grad; ctx.fillRect(0, top, W, 112);
+  var unit = 375, span = unit * 2;
+  var off = ((t * 26) % span);
+  for (var k = -1; k <= 2; k++) {
     ctx.save();
-    ctx.globalAlpha = c.o;
-    ctx.fillStyle = "#FFF9EF";
-    rr(ctx, x, c.y, c.w, c.h, c.h / 2); ctx.fill();
-    ctx.beginPath();
-    ctx.arc(x + c.w * 0.28, c.y - 3, c.h * 0.62, 0, Math.PI * 2); ctx.fill();
-    ctx.arc(x + c.w * 0.64, c.y - 2, c.h * 0.50, 0, Math.PI * 2); ctx.fill();
+    ctx.translate(k * unit - off, top + 4);
+    ctx.scale(0.625, 0.625);
+    drawPanoUnit(ctx, t);
     ctx.restore();
-  });
+  }
+  // 行走小人 (前景)
+  var y = top + 78;
+  drawWalker(ctx, ((t * 46) % (W + 120)) - 60, y, "#B85C3C", t * 9);
+  drawWalker(ctx, ((t * 30 + 180) % (W + 120)) - 60, y + 3, "#D97E3D", t * 7 + 2);
+  drawWalker(ctx, ((t * 20 + 300) % (W + 120)) - 60, y + 6, "#7A8F6E", t * 5 + 4);
 }
 
 // ---------- 街道页 ----------
@@ -239,7 +313,7 @@ function draw(ctx, Core, w, h) {
   ctx.fillStyle = C.paper;
   ctx.fillRect(0, 0, W, H);
   hitAreas = [];
-  if (page === "street") drawClouds(ctx, Date.now() / 1000);
+  if (page === "street") drawPanorama(ctx, Date.now() / 1000);
   if (page === "cards") drawCards(ctx, Core);
   else if (page === "tasks") drawTasks(ctx, Core);
   else drawStreet(ctx, Core);
