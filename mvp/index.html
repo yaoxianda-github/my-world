@@ -29,8 +29,23 @@
   .pros-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--gold));transition:width .3s}
 
   /* ===== 街道 ===== */
-  .street{flex:1;overflow-y:auto;background:linear-gradient(180deg,#F0E3CA 0%,#E3CDA4 100%);padding:12px}
-  .street-title{font-size:12px;color:var(--ink2);letter-spacing:3px;text-align:center;margin-bottom:10px}
+  .street{flex:1;overflow-y:auto;position:relative;background:#E3CDA4;padding:12px}
+  .street-title{font-size:12px;color:var(--ink2);letter-spacing:3px;text-align:center;margin-bottom:10px;position:relative;z-index:1}
+
+  /* ===== 背景动画: 云 + 花瓣 (2026-09-19) ===== */
+  .sky{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;
+    background:linear-gradient(180deg,#F0E3CA 0%,#E3CDA4 100%)}
+  .cloud{position:absolute;border-radius:50px;opacity:.6;filter:blur(7px);
+    background:linear-gradient(180deg,#FFF9EF,#F7E9D0);
+    box-shadow:22px 10px 0 5px rgba(255,249,239,.85),-20px 9px 0 4px rgba(255,249,239,.75);
+    animation:drift linear infinite}
+  .cloud.c1{width:118px;height:32px;top:22px;animation-duration:80s;animation-delay:-25s}
+  .cloud.c2{width:78px;height:22px;top:62px;animation-duration:115s;animation-delay:-60s;opacity:.45}
+  .cloud.c3{width:150px;height:36px;top:112px;animation-duration:135s;animation-delay:-95s;opacity:.4}
+  @keyframes drift{from{left:104%}to{left:-46%}}
+  .petals{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2}
+  .petal{position:absolute;top:-6%;border-radius:50% 0 50% 50%;opacity:.5;animation:fall linear infinite}
+  @keyframes fall{to{transform:translateY(106vh) rotate(340deg)}}
   .shop-list{display:flex;flex-direction:column;gap:10px}
   .shop{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--brown);border-radius:12px;padding:10px;cursor:pointer;transition:transform .1s}
   .shop:active{transform:scale(.98)}
@@ -110,9 +125,15 @@
 
   <div class="page on" id="pageStreet">
     <div class="street" style="padding:0">
+      <div class="sky">
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+        <div class="cloud c3"></div>
+      </div>
+      <div class="petals" id="petals"></div>
       <div class="street-title">— 老 街 —</div>
-      <div id="specialBox" style="padding:0 12px"></div>
-      <div class="shop-list" id="shopList"></div>
+      <div id="specialBox" style="padding:0 12px;position:relative;z-index:1"></div>
+      <div class="shop-list" id="shopList" style="position:relative;z-index:1"></div>
     </div>
   </div>
 
@@ -443,6 +464,18 @@ document.getElementById("drawBtn").onclick=drawCard;
 document.getElementById("adBtn").onclick=adDouble;
 
 // 启动
+// 背景花瓣 (治愈系: 暖橙/砖红/金/浅杏, 8片随机)
+(function(){
+ const box=document.getElementById("petals");
+ const cols=["#D97E3D","#B85C3C","#C9A227","#E8B48A"];
+ for(let i=0;i<8;i++){
+  let p=document.createElement("span");p.className="petal";
+  let s=5+Math.random()*4;
+  p.style.cssText=`left:${4+Math.random()*92}%;width:${s}px;height:${s}px;
+   background:${cols[i%4]};animation-duration:${14+Math.random()*10}s;animation-delay:${-Math.random()*22}s;`;
+  box.appendChild(p);
+ }
+})();
 offlineGain();
 render();
 setInterval(save,5000);

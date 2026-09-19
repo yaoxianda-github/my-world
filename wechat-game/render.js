@@ -75,6 +75,30 @@ function drawTop(ctx, Core) {
   ctx.fill();
 }
 
+// ---------- 背景云 (2026-09-19) ----------
+function drawClouds(ctx, t) {
+  var grad = ctx.createLinearGradient(0, TOP_H, 0, H);
+  grad.addColorStop(0, "#F0E3CA"); grad.addColorStop(1, "#E3CDA4");
+  ctx.fillStyle = grad; ctx.fillRect(0, TOP_H, W, H - TOP_H);
+  var clouds = [
+    { w: 118, h: 30, y: TOP_H + 26, sp: 0.020, o: 0.60 },
+    { w: 78,  h: 22, y: TOP_H + 70, sp: 0.013, o: 0.45 },
+    { w: 150, h: 36, y: TOP_H + 118, sp: 0.011, o: 0.40 }
+  ];
+  clouds.forEach(function (c) {
+    var prog = (t * c.sp) % 1;
+    var x = W + 80 - prog * (W + 260);
+    ctx.save();
+    ctx.globalAlpha = c.o;
+    ctx.fillStyle = "#FFF9EF";
+    rr(ctx, x, c.y, c.w, c.h, c.h / 2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + c.w * 0.28, c.y - 3, c.h * 0.62, 0, Math.PI * 2); ctx.fill();
+    ctx.arc(x + c.w * 0.64, c.y - 2, c.h * 0.50, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+}
+
 // ---------- 街道页 ----------
 function drawStreet(ctx, Core) {
   var S = Core.S, fmt = Core.fmt;
@@ -215,6 +239,7 @@ function draw(ctx, Core, w, h) {
   ctx.fillStyle = C.paper;
   ctx.fillRect(0, 0, W, H);
   hitAreas = [];
+  if (page === "street") drawClouds(ctx, Date.now() / 1000);
   if (page === "cards") drawCards(ctx, Core);
   else if (page === "tasks") drawTasks(ctx, Core);
   else drawStreet(ctx, Core);
