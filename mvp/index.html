@@ -111,6 +111,16 @@
   #shopDoor.press{transform:scaleX(.96)}
   @keyframes coinPop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
   #coins.pop{display:inline-block;animation:coinPop .25s ease-out}
+  .kids{position:absolute;bottom:1%;width:34%;z-index:4;pointer-events:none;mix-blend-mode:multiply;
+    -webkit-mask-image:radial-gradient(ellipse 60% 70% at 50% 60%,#000 55%,transparent 95%);
+    mask-image:radial-gradient(ellipse 60% 70% at 50% 60%,#000 55%,transparent 95%);
+    animation:kidsRun 16s ease-in-out infinite}
+  @keyframes kidsRun{
+    0%{left:-12%;transform:scaleX(1)}
+    48%{left:66%;transform:scaleX(1)}
+    52%{left:66%;transform:scaleX(-1)}
+    100%{left:-12%;transform:scaleX(-1)}
+  }
   .shop-face{position:absolute;left:50%;top:40%;transform:translateX(-50%);width:44%;height:34%;cursor:pointer;z-index:4}
   .door-frame{position:absolute;inset:0;background:transparent;border-radius:6px}
   .door-leaf{display:none}
@@ -285,7 +295,7 @@
       <!-- 左右切换店铺 -->
       <div class="yard-nav left" id="navLeft">‹</div>
       <div class="yard-nav right" id="navRight">›</div>
-      <div id="specialBanner"></div>
+      <img class="kids" src="assets/kids.png" alt=""><div id="specialBanner"></div>
     </div>
     <!-- 左侧竖排功能图标 -->
     <div class="side-icons">
