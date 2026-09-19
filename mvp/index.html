@@ -62,6 +62,72 @@
   @keyframes legswing{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
   @keyframes walkAcross{0%{left:-46px}100%{left:calc(100% + 46px)}}
   @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+
+  /* ===== 主界面: 横向老街场景 (PRD 8.1/8.3, 2026-09-19) ===== */
+  .street-h{position:relative;flex:1;overflow:hidden;background:#E3CDA4}
+  .sky-h{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,#F0E3CA 0%,#E3CDA4 68%,#D8C2A0 100%)}
+  .pano-h{position:absolute;left:0;right:0;top:14px;height:76px;display:flex;pointer-events:none;animation:panoScroll 90s linear infinite;opacity:.9}
+  .pano-h svg{display:block;height:100%;flex:none}
+  .ground{position:absolute;left:0;right:0;bottom:0;height:96px;pointer-events:none;
+    background:linear-gradient(180deg,#D8C2A0,#C9AE86)}
+  .bldg-row{position:absolute;left:0;right:0;bottom:14px;height:196px;display:flex;gap:10px;
+    overflow-x:auto;overflow-y:hidden;padding:0 14px 4px;scrollbar-width:none}
+  .bldg-row::-webkit-scrollbar{display:none}
+  .bldg{flex:none;width:138px;height:192px;background:linear-gradient(180deg,#FFFDF8,#F6ECD8);
+    border:1.5px solid var(--brown);border-radius:14px;display:flex;flex-direction:column;
+    align-items:center;padding:8px 6px;cursor:pointer;box-shadow:0 3px 8px rgba(90,60,30,.14);transition:transform .12s}
+  .bldg:active{transform:scale(.97)}
+  .bldg.locked{border-style:dashed;opacity:.82;background:rgba(255,253,248,.72)}
+  .bldg .b-icon{width:66px;height:66px;margin-top:2px}
+  .bldg .b-icon svg{width:66px;height:66px}
+  .bldg .b-name{font-size:13px;font-weight:800;margin-top:4px;white-space:nowrap}
+  .bldg .b-lv{font-size:10px;color:var(--gold);font-weight:700;margin-top:2px}
+  .bldg .b-rate{font-size:12px;color:var(--orange);font-weight:800;margin-top:3px}
+  .bldg .b-cta{font-size:10px;color:var(--green);font-weight:700;margin-top:4px}
+  .bldg .b-cta.cant{color:var(--red)}
+  .bldg .b-lock{font-size:10px;color:var(--ink2);margin-top:4px;text-align:center;line-height:1.4}
+  /* NPC 行走层 */
+  .npc-layer{position:absolute;left:0;right:0;bottom:88px;height:40px;pointer-events:none;z-index:3}
+  .npc{position:absolute;bottom:0;animation:walkAcross 26s ease-in-out infinite,bob 1.2s ease-in-out infinite alternate}
+  .npc.n2{bottom:4px;animation-duration:34s,-1.1s;animation-delay:-12s,0s}
+  .npc.n3{bottom:0;animation-duration:30s,-1.2s;animation-delay:-20s,0s}
+  .npc svg{display:block}
+  .npc svg .leg{transform-box:fill-box;transform-origin:center top;animation:legswing .45s ease-in-out infinite alternate}
+  /* 特殊顾客横幅(场景内悬浮) */
+  .sp-banner{position:absolute;left:12px;right:12px;top:8px;z-index:6;display:flex;align-items:center;gap:10px;
+    background:linear-gradient(90deg,var(--gold),#D9B64E);border-radius:12px;padding:9px 12px;color:#fff;
+    box-shadow:0 4px 12px rgba(120,80,20,.35)}
+  .sp-banner .sp-icon{font-size:22px}
+  .sp-banner .sp-info{flex:1;font-size:12px;font-weight:700}
+  .sp-banner .sp-info small{display:block;font-weight:500;font-size:10px;opacity:.9}
+  .sp-banner .sp-btn{background:var(--brick);color:#fff;border:none;border-radius:14px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer}
+  /* 升级面板 */
+  .panel-mask{position:fixed;inset:0;background:rgba(70,53,42,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+  .panel-mask.on{display:flex}
+  .panel{width:100%;max-width:480px;background:var(--paper);border-radius:18px 18px 0 0;padding:16px 18px 22px;
+    box-shadow:0 -6px 24px rgba(70,53,42,.25);animation:panelUp .22s ease-out}
+  @keyframes panelUp{from{transform:translateY(60px);opacity:.4}to{transform:translateY(0);opacity:1}}
+  .p-head{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800}
+  .p-head .p-close{margin-left:auto;background:none;border:none;font-size:24px;color:var(--ink2);cursor:pointer;padding:0 4px}
+  .p-stats{font-size:12px;color:var(--ink2);margin-top:6px;display:flex;gap:14px}
+  .p-stats b{color:var(--ink)}
+  .p-rate{font-size:13px;color:var(--orange);font-weight:800;margin-top:8px}
+  .p-up{width:100%;margin-top:12px;background:linear-gradient(180deg,var(--orange),#C96A2B);color:#fff;border:none;
+    border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;touch-action:none}
+  .p-up:active{transform:scale(.98)}
+  .p-hint{text-align:center;font-size:10px;color:var(--ink2);margin-top:6px}
+  /* 收益/升级冒字 */
+  .float-text{position:absolute;z-index:8;font-size:13px;font-weight:800;color:var(--brick);
+    animation:floatUp 1.2s ease-out forwards;pointer-events:none;white-space:nowrap}
+  .float-text.gold{color:var(--gold)}
+  .float-text.green{color:var(--green)}
+  @keyframes floatUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-46px);opacity:0}}
+  /* 顶部顾客进度条 */
+  .cust-bar{margin-top:7px}
+  .cust-label{display:flex;justify-content:space-between;font-size:11px;color:var(--ink2);margin-bottom:3px}
+  .cust-track{height:9px;background:#E4D5BC;border-radius:5px;overflow:hidden}
+  .cust-fill{height:100%;background:linear-gradient(90deg,var(--green),#A3B98F);transition:width .3s}
   .shop-list{display:flex;flex-direction:column;gap:10px}
   .shop{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--brown);border-radius:12px;padding:10px;cursor:pointer;transition:transform .1s}
   .shop:active{transform:scale(.98)}
@@ -137,114 +203,61 @@
       <div class="pros-label"><span>繁荣值</span><span id="prosNext">下一店: 260</span></div>
       <div class="pros-track"><div class="pros-fill" id="prosFill" style="width:0%"></div></div>
     </div>
+    <div class="cust-bar">
+      <div class="cust-label"><span>今日顾客 <b id="custDone2">0</b>/<span id="custTarget2">60</span></span><span id="rentNext2">租金明日 230</span></div>
+      <div class="cust-track"><div class="cust-fill" id="custFill" style="width:0%"></div></div>
+    </div>
   </div>
 
   <div class="page on" id="pageStreet">
-    <div class="street" style="padding:0">
-      <div class="sky"></div>
-      <div class="street-title">— 老 街 —</div>
-      <div class="panorama">
-        <div class="pano-track">
-          <svg viewBox="0 0 600 100" preserveAspectRatio="xMidYMax slice">
-            <path d="M0 74 Q60 44 130 70 Q200 34 280 68 Q360 50 430 68 Q520 42 600 70 V100 H0 Z" fill="rgba(255,249,239,.55)"/>
-            <rect x="0" y="80" width="600" height="20" fill="#D8C2A0" opacity=".85"/>
-            <line x1="90" y1="80" x2="90" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="185" y1="80" x2="185" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="278" y1="80" x2="278" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="372" y1="80" x2="372" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="466" y1="80" x2="466" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="560" y1="80" x2="560" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <!-- 房子1 砖红: 炊烟 -->
-            <rect x="34" y="56" width="52" height="28" fill="#B85C3C" rx="2"/><path d="M28 58l32-22 32 22z" fill="#6B4A2E"/>
-            <rect x="70" y="38" width="9" height="18" fill="#7A6A58"/><rect x="68" y="36" width="13" height="5" fill="#5C4A33"/>
-            <circle class="smoke" cx="74.5" cy="30" r="2.6" fill="#E8E0CE"/><circle class="smoke s2" cx="75" cy="26" r="2.2" fill="#EDE6D6"/><circle class="smoke s3" cx="75.5" cy="22" r="1.8" fill="#F2ECE0"/>
-            <rect x="52" y="68" width="16" height="16" fill="#46352A" rx="1"/>
-            <!-- 树1 -->
-            <rect x="150" y="62" width="7" height="18" fill="#8A5A33" rx="2"/><circle cx="153" cy="54" r="13" fill="#7A8F6E"/><circle cx="145" cy="60" r="8" fill="#8CA084"/>
-            <!-- 房子2 橙: 幌子 -->
-            <rect x="210" y="56" width="56" height="28" fill="#D97E3D" rx="2"/><path d="M204 58l34-20 34 20z" fill="#8A5A33"/>
-            <path class="wobble" d="M236 56l0 14 12-7z" fill="#C0392B"/>
-            <rect x="230" y="68" width="16" height="16" fill="#46352A" rx="1"/><rect x="250" y="62" width="8" height="6" fill="#DCEAF2" rx="1"/>
-            <!-- 早点摊: 热气 -->
-            <rect x="298" y="66" width="34" height="18" fill="#8A5A33" rx="2"/>
-            <path d="M290 68l6-22 4 22z" fill="#C9A227"/><path d="M340 68l-6-22-4 22z" fill="#C9A227"/>
-            <rect x="310" y="58" width="12" height="6" fill="#DCEAF2" rx="2"/>
-            <circle class="smoke" cx="316" cy="52" r="2.4" fill="#E8E0CE"/><circle class="smoke s2" cx="317" cy="47" r="2" fill="#EDE6D6"/><circle class="smoke s3" cx="318" cy="42" r="1.6" fill="#F2ECE0"/>
-            <!-- 房子3 米墙绿顶: 晾衣 -->
-            <rect x="360" y="56" width="52" height="28" fill="#EFE2C8" rx="2"/><path d="M354 58l32-20 32 20z" fill="#5C7050"/>
-            <rect x="376" y="70" width="16" height="14" fill="#46352A" rx="1"/><rect x="396" y="62" width="8" height="6" fill="#DCEAF2" rx="1"/>
-            <rect x="352" y="44" width="3" height="16" fill="#8A5A33"/><rect x="414" y="44" width="3" height="16" fill="#8A5A33"/>
-            <line x1="354" y1="46" x2="415" y2="46" stroke="#7A6A58" stroke-width="1.2"/>
-            <rect class="cloth" x="366" y="47" width="11" height="13" fill="#D97E3D" rx="2"/><rect class="cloth" x="384" y="47" width="11" height="13" fill="#7FB3A6" rx="2"/>
-            <!-- 街猫 -->
-            <ellipse cx="452" cy="72" rx="8" ry="6" fill="#8A5A33"/><circle cx="459" cy="66" r="4.5" fill="#8A5A33"/><path d="M455 63l2-3 2 2z" fill="#8A5A33"/><path d="M444 72q-5 1-4 6" stroke="#8A5A33" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-            <!-- 树2 -->
-            <rect x="490" y="64" width="6" height="16" fill="#8A5A33" rx="2"/><circle cx="493" cy="56" r="11" fill="#7A8F6E"/>
-            <!-- 房子4 金: 灯笼 -->
-            <rect x="530" y="58" width="46" height="26" fill="#C9A227" rx="2"/><path d="M525 60l28-18 28 18z" fill="#6B4A2E"/>
-            <rect x="548" y="70" width="14" height="14" fill="#46352A" rx="1"/>
-            <rect class="lantern" x="566" y="58" width="7" height="11" fill="#C0392B" rx="3"/><line class="lantern" x1="569.5" y1="69" x2="569.5" y2="73" stroke="#C0392B" stroke-width="1.4"/>
-          </svg>
-          <svg viewBox="0 0 600 100" preserveAspectRatio="xMidYMax slice">
-            <path d="M0 74 Q60 44 130 70 Q200 34 280 68 Q360 50 430 68 Q520 42 600 70 V100 H0 Z" fill="rgba(255,249,239,.55)"/>
-            <rect x="0" y="80" width="600" height="20" fill="#D8C2A0" opacity=".85"/>
-            <line x1="90" y1="80" x2="90" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="185" y1="80" x2="185" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="278" y1="80" x2="278" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="372" y1="80" x2="372" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="466" y1="80" x2="466" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <line x1="560" y1="80" x2="560" y2="86" stroke="#CBB28A" stroke-width="1.5"/>
-            <rect x="34" y="56" width="52" height="28" fill="#B85C3C" rx="2"/><path d="M28 58l32-22 32 22z" fill="#6B4A2E"/>
-            <rect x="70" y="38" width="9" height="18" fill="#7A6A58"/><rect x="68" y="36" width="13" height="5" fill="#5C4A33"/>
-            <circle class="smoke" cx="74.5" cy="30" r="2.6" fill="#E8E0CE"/><circle class="smoke s2" cx="75" cy="26" r="2.2" fill="#EDE6D6"/><circle class="smoke s3" cx="75.5" cy="22" r="1.8" fill="#F2ECE0"/>
-            <rect x="52" y="68" width="16" height="16" fill="#46352A" rx="1"/>
-            <rect x="150" y="62" width="7" height="18" fill="#8A5A33" rx="2"/><circle cx="153" cy="54" r="13" fill="#7A8F6E"/><circle cx="145" cy="60" r="8" fill="#8CA084"/>
-            <rect x="210" y="56" width="56" height="28" fill="#D97E3D" rx="2"/><path d="M204 58l34-20 34 20z" fill="#8A5A33"/>
-            <path class="wobble" d="M236 56l0 14 12-7z" fill="#C0392B"/>
-            <rect x="230" y="68" width="16" height="16" fill="#46352A" rx="1"/><rect x="250" y="62" width="8" height="6" fill="#DCEAF2" rx="1"/>
-            <rect x="298" y="66" width="34" height="18" fill="#8A5A33" rx="2"/>
-            <path d="M290 68l6-22 4 22z" fill="#C9A227"/><path d="M340 68l-6-22-4 22z" fill="#C9A227"/>
-            <rect x="310" y="58" width="12" height="6" fill="#DCEAF2" rx="2"/>
-            <circle class="smoke" cx="316" cy="52" r="2.4" fill="#E8E0CE"/><circle class="smoke s2" cx="317" cy="47" r="2" fill="#EDE6D6"/><circle class="smoke s3" cx="318" cy="42" r="1.6" fill="#F2ECE0"/>
-            <rect x="360" y="56" width="52" height="28" fill="#EFE2C8" rx="2"/><path d="M354 58l32-20 32 20z" fill="#5C7050"/>
-            <rect x="376" y="70" width="16" height="14" fill="#46352A" rx="1"/><rect x="396" y="62" width="8" height="6" fill="#DCEAF2" rx="1"/>
-            <rect x="352" y="44" width="3" height="16" fill="#8A5A33"/><rect x="414" y="44" width="3" height="16" fill="#8A5A33"/>
-            <line x1="354" y1="46" x2="415" y2="46" stroke="#7A6A58" stroke-width="1.2"/>
-            <rect class="cloth" x="366" y="47" width="11" height="13" fill="#D97E3D" rx="2"/><rect class="cloth" x="384" y="47" width="11" height="13" fill="#7FB3A6" rx="2"/>
-            <ellipse cx="452" cy="72" rx="8" ry="6" fill="#8A5A33"/><circle cx="459" cy="66" r="4.5" fill="#8A5A33"/><path d="M455 63l2-3 2 2z" fill="#8A5A33"/><path d="M444 72q-5 1-4 6" stroke="#8A5A33" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-            <rect x="490" y="64" width="6" height="16" fill="#8A5A33" rx="2"/><circle cx="493" cy="56" r="11" fill="#7A8F6E"/>
-            <rect x="530" y="58" width="46" height="26" fill="#C9A227" rx="2"/><path d="M525 60l28-18 28 18z" fill="#6B4A2E"/>
-            <rect x="548" y="70" width="14" height="14" fill="#46352A" rx="1"/>
-            <rect class="lantern" x="566" y="58" width="7" height="11" fill="#C0392B" rx="3"/><line class="lantern" x1="569.5" y1="69" x2="569.5" y2="73" stroke="#C0392B" stroke-width="1.4"/>
-          </svg>
-        </div>
-        <div class="walker w1">
-          <svg viewBox="0 0 24 38" width="24" height="38">
-            <circle cx="12" cy="7" r="5" fill="#E8B48A"/>
-            <path d="M12 11l-6 15h12z" fill="#B85C3C"/>
-            <path class="leg" d="M9 26l-2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/>
-            <path class="leg" d="M15 26l2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="walker w2">
-          <svg viewBox="0 0 24 38" width="24" height="38">
-            <circle cx="12" cy="7" r="5" fill="#E8B48A"/>
-            <path d="M12 11l-6 15h12z" fill="#D97E3D"/>
-            <path class="leg" d="M9 26l-2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/>
-            <path class="leg" d="M15 26l2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="walker w3">
-          <svg viewBox="0 0 24 38" width="22" height="36">
-            <circle cx="12" cy="7" r="5" fill="#E8B48A"/>
-            <path d="M12 11l-6 15h12z" fill="#7A8F6E"/>
-            <path class="leg" d="M9 26l-2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/>
-            <path class="leg" d="M15 26l2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/>
-          </svg>
-        </div>
+    <div class="street-h">
+      <div class="sky-h"></div>
+      <div class="pano-h">
+        <svg viewBox="0 0 600 100" preserveAspectRatio="xMidYMax slice">
+          <path d="M0 74 Q60 44 130 70 Q200 34 280 68 Q360 50 430 68 Q520 42 600 70 V100 H0 Z" fill="rgba(255,249,239,.5)"/>
+          <rect x="0" y="80" width="600" height="20" fill="#D8C2A0" opacity=".85"/>
+          <rect x="34" y="56" width="52" height="28" fill="#B85C3C" rx="2"/><path d="M28 58l32-22 32 22z" fill="#6B4A2E"/>
+          <rect x="70" y="38" width="9" height="18" fill="#7A6A58"/><rect x="52" y="68" width="16" height="16" fill="#46352A" rx="1"/>
+          <rect x="150" y="62" width="7" height="18" fill="#8A5A33" rx="2"/><circle cx="153" cy="54" r="13" fill="#7A8F6E"/><circle cx="145" cy="60" r="8" fill="#8CA084"/>
+          <rect x="210" y="56" width="56" height="28" fill="#D97E3D" rx="2"/><path d="M204 58l34-20 34 20z" fill="#8A5A33"/>
+          <path class="wobble" d="M236 56l0 14 12-7z" fill="#C0392B"/>
+          <rect x="230" y="68" width="16" height="16" fill="#46352A" rx="1"/><rect x="250" y="62" width="8" height="6" fill="#DCEAF2" rx="1"/>
+          <rect x="298" y="66" width="34" height="18" fill="#8A5A33" rx="2"/>
+          <path d="M290 68l6-22 4 22z" fill="#C9A227"/><path d="M340 68l-6-22-4 22z" fill="#C9A227"/>
+          <rect x="360" y="56" width="52" height="28" fill="#EFE2C8" rx="2"/><path d="M354 58l32-20 32 20z" fill="#5C7050"/>
+          <rect x="352" y="44" width="3" height="16" fill="#8A5A33"/><rect x="414" y="44" width="3" height="16" fill="#8A5A33"/>
+          <line x1="354" y1="46" x2="415" y2="46" stroke="#7A6A58" stroke-width="1.2"/>
+          <rect class="cloth" x="366" y="47" width="11" height="13" fill="#D97E3D" rx="2"/>
+          <ellipse cx="452" cy="72" rx="8" ry="6" fill="#8A5A33"/><circle cx="459" cy="66" r="4.5" fill="#8A5A33"/>
+          <rect x="490" y="64" width="6" height="16" fill="#8A5A33" rx="2"/><circle cx="493" cy="56" r="11" fill="#7A8F6E"/>
+          <rect x="530" y="58" width="46" height="26" fill="#C9A227" rx="2"/><path d="M525 60l28-18 28 18z" fill="#6B4A2E"/>
+          <rect class="lantern" x="566" y="58" width="7" height="11" fill="#C0392B" rx="3"/>
+        </svg>
+        <svg viewBox="0 0 600 100" preserveAspectRatio="xMidYMax slice">
+          <path d="M0 74 Q60 44 130 70 Q200 34 280 68 Q360 50 430 68 Q520 42 600 70 V100 H0 Z" fill="rgba(255,249,239,.5)"/>
+          <rect x="0" y="80" width="600" height="20" fill="#D8C2A0" opacity=".85"/>
+          <rect x="34" y="56" width="52" height="28" fill="#B85C3C" rx="2"/><path d="M28 58l32-22 32 22z" fill="#6B4A2E"/>
+          <rect x="70" y="38" width="9" height="18" fill="#7A6A58"/><rect x="52" y="68" width="16" height="16" fill="#46352A" rx="1"/>
+          <rect x="150" y="62" width="7" height="18" fill="#8A5A33" rx="2"/><circle cx="153" cy="54" r="13" fill="#7A8F6E"/><circle cx="145" cy="60" r="8" fill="#8CA084"/>
+          <rect x="210" y="56" width="56" height="28" fill="#D97E3D" rx="2"/><path d="M204 58l34-20 34 20z" fill="#8A5A33"/>
+          <path class="wobble" d="M236 56l0 14 12-7z" fill="#C0392B"/>
+          <rect x="230" y="68" width="16" height="16" fill="#46352A" rx="1"/><rect x="250" y="62" width="8" height="6" fill="#DCEAF2" rx="1"/>
+          <rect x="298" y="66" width="34" height="18" fill="#8A5A33" rx="2"/>
+          <path d="M290 68l6-22 4 22z" fill="#C9A227"/><path d="M340 68l-6-22-4 22z" fill="#C9A227"/>
+          <rect x="360" y="56" width="52" height="28" fill="#EFE2C8" rx="2"/><path d="M354 58l32-20 32 20z" fill="#5C7050"/>
+          <rect x="352" y="44" width="3" height="16" fill="#8A5A33"/><rect x="414" y="44" width="3" height="16" fill="#8A5A33"/>
+          <line x1="354" y1="46" x2="415" y2="46" stroke="#7A6A58" stroke-width="1.2"/>
+          <rect class="cloth" x="366" y="47" width="11" height="13" fill="#D97E3D" rx="2"/>
+          <ellipse cx="452" cy="72" rx="8" ry="6" fill="#8A5A33"/><circle cx="459" cy="66" r="4.5" fill="#8A5A33"/>
+          <rect x="490" y="64" width="6" height="16" fill="#8A5A33" rx="2"/><circle cx="493" cy="56" r="11" fill="#7A8F6E"/>
+          <rect x="530" y="58" width="46" height="26" fill="#C9A227" rx="2"/><path d="M525 60l28-18 28 18z" fill="#6B4A2E"/>
+          <rect class="lantern" x="566" y="58" width="7" height="11" fill="#C0392B" rx="3"/>
+        </svg>
       </div>
-      <div id="specialBox" style="padding:0 12px;position:relative;z-index:1"></div>
-      <div class="shop-list" id="shopList" style="position:relative;z-index:1"></div>
+      <div class="ground"></div>
+      <div class="npc-layer" id="npcLayer"></div>
+      <div class="bldg-row" id="bldgRow"></div>
+      <div id="specialBanner"></div>
     </div>
   </div>
 
@@ -269,6 +282,17 @@
     <div class="tab on" data-page="pageStreet">街道</div>
     <div class="tab" data-page="pageCards">卡牌 <span class="badge" id="cardBadge" style="display:none">!</span></div>
     <div class="tab" data-page="pageTasks">任务</div>
+  </div>
+</div>
+
+<div class="panel-mask" id="panelMask">
+  <div class="panel">
+    <div class="p-head"><span id="pIcon">🔑</span><span id="pName">配钥匙铺</span>
+      <button class="p-close" id="pClose">×</button></div>
+    <div class="p-stats">客流 <b id="pTraffic">100</b>/h · 客单价 <b id="pSpend">10</b></div>
+    <div class="p-rate">当前产出 <b id="pRate">0.0</b>/s</div>
+    <button class="p-up" id="pUp">升级 <span id="pCost">50</span>币</button>
+    <div class="p-hint">点击升级 · 长按连升</div>
   </div>
 </div>
 <div id="toast"></div>
@@ -394,11 +418,24 @@ function checkMilestones(){
   if(S.prosper>=thr&&!S.msHit.includes(thr)){S.msHit.push(thr);
    if(amt>0)S.coins+=amt;toast(`繁荣${thr} 里程碑: ${label}`);}});
 }
+function floatText(i,txt,cls){
+ let el=document.getElementById("bldg"+i);if(!el)return;
+ let r=el.getBoundingClientRect(),sr=document.getElementById("pageStreet").getBoundingClientRect();
+ let f=document.createElement("div");f.className="float-text"+(cls?" "+cls:"");
+ f.textContent=txt;
+ f.style.left=(r.left-sr.left+r.width/2-34)+"px";
+ f.style.top=(r.top-sr.top-10)+"px";
+ document.getElementById("pageStreet").appendChild(f);
+ setTimeout(()=>f.remove(),1300);
+}
 function upgrade(i){
  if(!S.shops[i].on)return;
  let c=upCost(i);if(S.coins<c){toast("金币不足");return;}
- S.coins-=c;S.shops[i].lv++;S.prosper+=prospGain(i,S.shops[i].lv);
+ S.coins-=c;S.shops[i].lv++;
+ let pg=prospGain(i,S.shops[i].lv);S.prosper+=pg;
+ floatText(i,`Lv.${S.shops[i].lv} 繁荣+${pg}`,"green");
  checkMilestones();save();render();
+ if(panelIdx===i)refreshPanel();
 }
 function tryUnlock(i){
  if(S.shops[i].on)return;let sh=SHOPS[i];
@@ -469,6 +506,70 @@ function offlineGain(){
  if(gain>50){S.coins+=gain;toast(`离线${Math.floor(cap/60)}分钟收益 +${fmt(gain)}币`);}
 }
 
+// ============ 场景渲染: 建筑排 / NPC / 特殊顾客 (PRD 8.1 场景式) ============
+function renderBldgs(){
+ let row=document.getElementById("bldgRow");if(!row)return;row.innerHTML="";
+ SHOPS.forEach((sh,i)=>{
+  let st=S.shops[i];
+  let div=document.createElement("div");
+  div.className="bldg"+(st.on?"":" locked");div.id="bldg"+i;
+  if(st.on){
+   let c=upCost(i),r=shopRate(i)*gEff().g;
+   div.innerHTML=`<div class="b-icon">${ICONS[i]}</div>
+    <div class="b-name">${sh.name}</div>
+    <div class="b-lv">Lv.${st.lv}</div>
+    <div class="b-rate">+${fmt(r)}/s</div>
+    <div class="b-cta ${S.coins>=c?"":"cant"}">升级 ${fmt(c)}</div>`;
+   div.onclick=()=>openPanel(i);
+  }else{
+   let can=S.prosper>=sh.unlock&&S.coins>=sh.build;
+   div.innerHTML=`<div class="b-icon" style="font-size:32px;display:flex;align-items:center;justify-content:center;opacity:.8">🔒</div>
+    <div class="b-name">${sh.name}</div>
+    <div class="b-lock">繁荣${sh.unlock}<br>金币${fmt(sh.build)}</div>
+    <div class="b-cta ${can?"":"cant"}">${can?"可修建":"未解锁"}</div>`;
+   div.onclick=()=>tryUnlock(i);
+  }
+  row.appendChild(div);
+ });
+}
+function renderNPCs(){
+ let layer=document.getElementById("npcLayer");if(!layer||layer.dataset.done)return;layer.dataset.done=1;
+ const npc=(cls,c)=>
+  `<div class="npc ${cls}"><svg viewBox="0 0 24 38" width="24" height="38">
+   <circle cx="12" cy="7" r="5" fill="#E8B48A"/>
+   <path d="M12 11l-6 15h12z" fill="${c}"/>
+   <path class="leg" d="M9 26l-2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/>
+   <path class="leg" d="M15 26l2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/></svg></div>`;
+ layer.innerHTML=npc("n1","#B85C3C")+npc("n2","#D97E3D")+npc("n3","#7A8F6E");
+}
+function renderBanner(){
+ let sb=document.getElementById("specialBanner");if(!sb)return;
+ if(S.special){
+  let sp=S.special;
+  sb.innerHTML=`<div class="sp-banner">
+   <div class="sp-icon">${sp.icon}</div>
+   <div class="sp-info">${sp.type} 到店！<small>${sp.reward==="coin"?"接待获得打赏金币":"接待获得繁荣助力"}</small></div>
+   <button class="sp-btn" onclick="serveSpecial()">接待</button></div>`;
+ }else sb.innerHTML="";
+}
+
+// ============ 店铺升级面板 (PRD 8.2/8.3: 点击升级 + 长按连升) ============
+let panelIdx=-1;
+function openPanel(i){panelIdx=i;refreshPanel();document.getElementById("panelMask").classList.add("on");}
+function closePanel(){panelIdx=-1;document.getElementById("panelMask").classList.remove("on");}
+function refreshPanel(){
+ if(panelIdx<0)return;
+ let i=panelIdx,sh=SHOPS[i],st=S.shops[i];
+ document.getElementById("pIcon").textContent=sh.icon;
+ document.getElementById("pName").textContent=sh.name+" · Lv."+st.lv;
+ document.getElementById("pTraffic").textContent=Math.round(sh.T0*(1+sh.a_t*(st.lv-1)));
+ document.getElementById("pSpend").textContent=Math.round(sh.S0*Math.pow(sh.r_s,st.lv-1));
+ document.getElementById("pRate").textContent=(shopRate(i)*gEff().g).toFixed(1);
+ let c=upCost(i);
+ document.getElementById("pUp").innerHTML=`升级 <span id="pCost">${fmt(c)}</span>币`;
+ document.getElementById("pUp").style.opacity=S.coins>=c?1:.55;
+}
+
 // ============ 渲染 ============
 function render(){
  document.getElementById("coins").textContent=fmt(S.coins);
@@ -479,45 +580,21 @@ function render(){
  document.getElementById("custDone").textContent=Math.floor(S.cust);
  document.getElementById("custTarget").textContent=custTarget(S.day);
  document.getElementById("rentNext").textContent=fmt(rentDay(S.day+1));
+ document.getElementById("custDone2").textContent=Math.floor(S.cust);
+ document.getElementById("custTarget2").textContent=custTarget(S.day);
+ document.getElementById("rentNext2").textContent="租金明日 "+fmt(rentDay(S.day+1));
+ document.getElementById("custFill").style.width=Math.min(100,S.cust/custTarget(S.day)*100)+"%";
  // 繁荣进度: 找下一个未解锁店
  let next=SHOPS.findIndex(s=>!S.shops[SHOPS.indexOf(s)].on);
  let nextThr=next>=0?SHOPS[next].unlock:2000;
  document.getElementById("prosNext").textContent=next>=0?`下一店: ${SHOPS[next].name}(${nextThr})`:"全部已解锁";
  document.getElementById("prosFill").style.width=Math.min(100,S.prosper/nextThr*100)+"%";
- // 店铺列表
- let list=document.getElementById("shopList");list.innerHTML="";
+ // 建筑排 (横向老街场景)
+ renderBldgs();
+ // NPC 行人
+ renderNPCs();
  // 特殊顾客横幅
- let sb=document.getElementById("specialBox");
- if(S.special){
-  let sp=S.special;
-  sb.innerHTML=`<div class="special">
-   <div class="sp-icon">${sp.icon}</div>
-   <div class="sp-info">${sp.type} 到店！<small>${sp.reward==="coin"?"接待获得打赏金币":"接待获得繁荣助力"}</small></div>
-   <button class="sp-btn" onclick="serveSpecial()">接待</button></div>`;
- }else sb.innerHTML="";
- SHOPS.forEach((sh,i)=>{
-  let st=S.shops[i];
-  let div=document.createElement("div");
-  div.className="shop"+(st.on?"":" locked");
-  if(st.on){
-   let c=upCost(i),r=shopRate(i)*gEff().g;
-   div.innerHTML=`<div class="roof">${ICONS[i]}</div>
-    <div class="info"><div class="sname">${sh.name}</div>
-     <div class="smeta">Lv.${st.lv} · 客流${Math.round(sh.T0*(1+sh.a_t*(st.lv-1)))}/h</div></div>
-    <div class="right"><div class="rate">${fmt(r)}/s</div>
-     <div class="cost ${S.coins>=c?"":"cant"}">升级 ${fmt(c)}</div></div>`;
-   div.onclick=()=>upgrade(i);
-  }else{
-   let can=S.prosper>=sh.unlock&&S.coins>=sh.build;
-   div.innerHTML=`<div class="roof" style="font-size:26px;opacity:.75">🔒</div>
-    <div class="info"><div class="sname">${sh.name} ?</div>
-     <div class="lock-info">繁荣${sh.unlock} + 金币${fmt(sh.build)}</div>
-     <div class="lock-info">需繁荣${fmt(sh.unlock)} (现${fmt(S.prosper)})</div></div>
-    <div class="right"><div class="lv">${S.prosper>=sh.unlock?"可修建":"未解锁"}</div></div>`;
-   div.onclick=()=>tryUnlock(i);
-  }
-  list.appendChild(div);
- });
+ renderBanner();
  // 卡牌
  let grid=document.getElementById("cardGrid");grid.innerHTML="";
  CARDS.forEach(cd=>{
@@ -546,7 +623,7 @@ function render(){
 }
 
 // ============ 主循环 ============
-let lastFrame=Date.now();
+let lastFrame=Date.now(),lastSpecial=null;
 function tick(){
  let now=Date.now();let dt=(now-lastFrame)/1000;lastFrame=now;
  S.coins+=totalRate()*dt;
@@ -559,8 +636,11 @@ function tick(){
  document.getElementById("coins").textContent=fmt(S.coins);
  document.getElementById("perSec").textContent="+"+totalRate().toFixed(1)+"/s";
  document.getElementById("custDone").textContent=Math.floor(S.cust);
- // 特殊顾客横幅与任务页按需刷新
- if(S.special||document.getElementById("pageTasks").classList.contains("on"))render();
+ document.getElementById("custDone2").textContent=Math.floor(S.cust);
+ document.getElementById("custFill").style.width=Math.min(100,S.cust/custTarget(S.day)*100)+"%";
+ // 特殊顾客横幅: 状态变化时单独刷新 (避免重建场景导致横向滚动重置)
+ if(S.special!==lastSpecial){lastSpecial=S.special;renderBanner();}
+ if(document.getElementById("pageTasks").classList.contains("on"))render();
 }
 setInterval(tick,200);
 
@@ -573,6 +653,28 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
 document.getElementById("settleBtn").onclick=settle;
 document.getElementById("drawBtn").onclick=drawCard;
 document.getElementById("adBtn").onclick=adDouble;
+
+// 升级面板: 点击升级 + 长按连升 (PRD 8.3)
+document.getElementById("pClose").onclick=closePanel;
+document.getElementById("panelMask").addEventListener("click",e=>{
+ if(e.target===document.getElementById("panelMask"))closePanel();
+});
+let holdTimer=null,holdStart=false;
+const pUp=document.getElementById("pUp");
+pUp.addEventListener("pointerdown",e=>{
+ e.preventDefault();holdStart=false;
+ holdTimer=setTimeout(()=>{
+  holdStart=true;
+  holdTimer=setInterval(()=>{if(panelIdx>=0)upgrade(panelIdx);},130);
+ },380);
+});
+["pointerup","pointerleave","pointercancel"].forEach(ev=>pUp.addEventListener(ev,()=>{
+ clearTimeout(holdTimer);clearInterval(holdTimer);holdTimer=null;
+}));
+pUp.addEventListener("click",e=>{
+ if(holdStart){e.stopPropagation();holdStart=false;return;}
+ if(panelIdx>=0)upgrade(panelIdx);
+});
 
 // 启动
 offlineGain();
