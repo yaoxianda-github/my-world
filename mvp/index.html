@@ -61,7 +61,8 @@
   .walker.w2 svg .leg{animation-delay:-.22s}.walker.w3 svg .leg{animation-delay:-.1s}
   @keyframes legswing{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
   @keyframes walkAcross{0%{left:-46px}100%{left:calc(100% + 46px)}}
-  @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+  @keyframes bobA{0%{transform:translateX(-95px) translateY(0)}50%{transform:translateX(-93px) translateY(-3px)}100%{transform:translateX(-97px) translateY(0)}}
+@keyframes bobB{0%{transform:translateX(108px) translateY(0) scaleX(-1)}50%{transform:translateX(106px) translateY(-3px) scaleX(-1)}100%{transform:translateX(110px) translateY(0) scaleX(-1)}}
 
   /* ===== 主界面: 横向老街场景 (PRD 8.1/8.3, 2026-09-19) ===== */
   .street-h{position:relative;flex:1;overflow:hidden;background:#E3CDA4}
@@ -105,6 +106,11 @@
   /* ===== 院子主场景 (复刻竞品近景实景, 2026-09-19) ===== */
   .yard{position:relative;flex:1;overflow:hidden;background:transparent}
   .yard-bg{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+  #daylight{position:absolute;inset:0;z-index:1;pointer-events:none;transition:background 1s}
+  #shopDoor{transition:transform .12s}
+  #shopDoor.press{transform:scaleX(.96)}
+  @keyframes coinPop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+  #coins.pop{display:inline-block;animation:coinPop .25s ease-out}
   .shop-face{position:absolute;left:50%;top:40%;transform:translateX(-50%);width:44%;height:34%;cursor:pointer;z-index:4}
   .door-frame{position:absolute;inset:0;background:transparent;border-radius:6px}
   .door-leaf{display:none}
@@ -121,8 +127,8 @@
   .yard-npcs .npc svg{display:block}
   .yard-npcs .npc svg .leg{transform-box:fill-box;transform-origin:center top;animation:legswing .45s ease-in-out infinite alternate}
   /* 店前停留顾客 */
-  .shop-cust{position:absolute;left:50%;top:60%;transform:translateX(-95px);z-index:5;pointer-events:none;animation:bob 3s ease-in-out infinite alternate}
-  .shop-cust.c2{transform:translateX(108px) scaleX(-1)}
+  .shop-cust{position:absolute;left:50%;top:60%;z-index:5;pointer-events:none;animation:bobA 3.2s ease-in-out infinite alternate}
+  .shop-cust.c2{animation:bobB 3.6s ease-in-out infinite alternate}
   .yard-nav{position:absolute;top:46%;transform:translateY(-50%);z-index:6;width:36px;height:60px;
     background:rgba(110,80,50,.55);color:#FFF8E8;display:flex;align-items:center;justify-content:center;
     font-size:26px;font-weight:800;border-radius:8px;cursor:pointer;user-select:none}
@@ -647,8 +653,13 @@ function refreshPanel(){
 
 // ============ 渲染 ============
 function render(){
- document.getElementById("coins").textContent=fmt(S.coins);
+ let ce=document.getElementById("coins");
+ if(ce.textContent!==fmt(S.coins)){ce.textContent=fmt(S.coins);ce.classList.remove("pop");void ce.offsetWidth;ce.classList.add("pop");}
  document.getElementById("perSec").textContent="+"+totalRate().toFixed(1)+"/s";
+ let dl=document.getElementById("daylight");
+ if(dl){let warm=Math.min(1,S.day/8);dl.style.background=warm>0.5?
+   "linear-gradient(180deg,rgba(255,150,60,"+((warm-0.5)*0.5)+"),rgba(255,190,90,"+((warm-0.5)*0.35)+"))"
+   :"linear-gradient(180deg,rgba(150,180,220,"+(0.25-warm*0.3)+"),rgba(180,200,230,"+(0.15-warm*0.2)+"))";}
  document.getElementById("day").textContent=S.day;
  document.getElementById("prosper").textContent=Math.floor(S.prosper);
  document.getElementById("rentNow").textContent=fmt(rentDay(S.day));
@@ -710,8 +721,13 @@ function tick(){
  // 特殊顾客生成: 首次40-80秒, 之后间隔60-120秒; 停留45秒
  if(!S.special&&(now-S.specialAt>40000+Math.random()*40000))newSpecial();
  if(S.special&&now>S.special.until){S.special=null;S.specialAt=now;}
- document.getElementById("coins").textContent=fmt(S.coins);
+ let ce=document.getElementById("coins");
+ if(ce.textContent!==fmt(S.coins)){ce.textContent=fmt(S.coins);ce.classList.remove("pop");void ce.offsetWidth;ce.classList.add("pop");}
  document.getElementById("perSec").textContent="+"+totalRate().toFixed(1)+"/s";
+ let dl=document.getElementById("daylight");
+ if(dl){let warm=Math.min(1,S.day/8);dl.style.background=warm>0.5?
+   "linear-gradient(180deg,rgba(255,150,60,"+((warm-0.5)*0.5)+"),rgba(255,190,90,"+((warm-0.5)*0.35)+"))"
+   :"linear-gradient(180deg,rgba(150,180,220,"+(0.25-warm*0.3)+"),rgba(180,200,230,"+(0.15-warm*0.2)+"))";}
  document.getElementById("custDone").textContent=Math.floor(S.cust);
  document.getElementById("custDone2").textContent=Math.floor(S.cust);
  document.getElementById("custFill").style.width=Math.min(100,S.cust/custTarget(S.day)*100)+"%";
@@ -739,6 +755,8 @@ document.getElementById("adBtn").onclick=adDouble;
 document.getElementById("navLeft").onclick=()=>switchShop(-1);
 document.getElementById("navRight").onclick=()=>switchShop(1);
 document.getElementById("shopFace").onclick=()=>{
+ let d=document.getElementById("shopDoor");
+ d.classList.add("press");setTimeout(()=>d.classList.remove("press"),120);
  if(S.shops[curShop].on)openPanel(curShop);else tryUnlock(curShop);
 };
 // 特殊顾客(客客)
