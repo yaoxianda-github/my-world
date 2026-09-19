@@ -114,11 +114,15 @@
     box-shadow:0 -2px 6px rgba(60,40,20,.2);border:1.5px solid #6B4A2E;border-bottom:none}
   .shop-tag{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);background:rgba(70,53,42,.85);
     color:#FFD980;font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;white-space:nowrap}
-  .yard-npcs{position:absolute;left:0;right:0;bottom:120px;height:60px;pointer-events:none;z-index:5}
-  .yard-npcs .npc{position:absolute;animation:walkAcross 26s ease-in-out infinite,bob 1.2s ease-in-out infinite alternate}
-  .yard-npcs .npc.n2{bottom:6px;animation-duration:34s,-1.1s;animation-delay:-12s,0s}
-  .yard-npcs .npc.n3{bottom:0;animation-duration:30s,-1.2s;animation-delay:-20s,0s}
+  .yard-npcs{position:absolute;left:60px;right:60px;bottom:96px;height:80px;pointer-events:none;z-index:5}
+  .yard-npcs .npc{position:absolute;bottom:0;animation:walkAcross 26s ease-in-out infinite,bob 1.2s ease-in-out infinite alternate}
+  .yard-npcs .npc.n2{bottom:10px;animation-duration:34s,-1.1s;animation-delay:-12s,0s}
+  .yard-npcs .npc.n3{bottom:2px;animation-duration:30s,-1.2s;animation-delay:-20s,0s}
+  .yard-npcs .npc svg{display:block}
   .yard-npcs .npc svg .leg{transform-box:fill-box;transform-origin:center top;animation:legswing .45s ease-in-out infinite alternate}
+  /* 店前停留顾客 */
+  .shop-cust{position:absolute;left:50%;top:60%;transform:translateX(-95px);z-index:5;pointer-events:none;animation:bob 3s ease-in-out infinite alternate}
+  .shop-cust.c2{transform:translateX(108px) scaleX(-1)}
   .yard-nav{position:absolute;top:46%;transform:translateY(-50%);z-index:6;width:36px;height:60px;
     background:rgba(110,80,50,.55);color:#FFF8E8;display:flex;align-items:center;justify-content:center;
     font-size:26px;font-weight:800;border-radius:8px;cursor:pointer;user-select:none}
@@ -267,6 +271,15 @@
       </div>
       <!-- NPC 行人 -->
       <div class="yard-npcs" id="npcLayer"></div>
+      <!-- 店前停留顾客 -->
+      <div class="shop-cust c1"><svg viewBox="0 0 36 64" width="38" height="66">
+        <circle cx="18" cy="9" r="6" fill="#E8B48A"/>
+        <path d="M18 15c-5 0-8 4-8 10v16h16V25c0-6-3-10-8-10z" fill="#4A6A8A"/>
+        <path d="M15 41l-1 13M21 41l1 13" stroke="#3D2E22" stroke-width="3.4" stroke-linecap="round"/></svg></div>
+      <div class="shop-cust c2"><svg viewBox="0 0 36 64" width="38" height="66">
+        <circle cx="18" cy="9" r="6" fill="#D9A07A"/>
+        <path d="M18 15c-5 0-8 4-8 10v16h16V25c0-6-3-10-8-10z" fill="#B85C3C"/>
+        <path d="M15 41l-1 13M21 41l1 13" stroke="#3D2E22" stroke-width="3.4" stroke-linecap="round"/></svg></div>
       <!-- 左右切换店铺 -->
       <div class="yard-nav left" id="navLeft">‹</div>
       <div class="yard-nav right" id="navRight">›</div>
@@ -551,11 +564,11 @@ function renderBldgs(){
 function renderNPCs(){
  let layer=document.getElementById("npcLayer");if(!layer||layer.dataset.done)return;layer.dataset.done=1;
  const npc=(cls,c)=>
-  `<div class="npc ${cls}"><svg viewBox="0 0 24 38" width="24" height="38">
-   <circle cx="12" cy="7" r="5" fill="#E8B48A"/>
-   <path d="M12 11l-6 15h12z" fill="${c}"/>
-   <path class="leg" d="M9 26l-2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/>
-   <path class="leg" d="M15 26l2 10" stroke="#46352A" stroke-width="2.6" stroke-linecap="round"/></svg></div>`;
+  `<div class="npc ${cls}"><svg viewBox="0 0 36 64" width="34" height="60">
+   <circle cx="18" cy="9" r="6" fill="#E8B48A"/>
+   <path d="M18 15c-5 0-8 4-8 10v14h16V25c0-6-3-10-8-10z" fill="${c}"/>
+   <path class="leg" d="M15 39l-2 14" stroke="#3D2E22" stroke-width="3.4" stroke-linecap="round"/>
+   <path class="leg" d="M21 39l2 14" stroke="#3D2E22" stroke-width="3.4" stroke-linecap="round"/></svg></div>`;
  layer.innerHTML=npc("n1","#B85C3C")+npc("n2","#D97E3D")+npc("n3","#7A8F6E");
 }
 // ============ 当前店铺门脸 (院子场景, PRD 8.1 复刻) ============
