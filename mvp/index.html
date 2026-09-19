@@ -736,14 +736,15 @@ const bbDial=document.getElementById("bbDial");
 let dialTimer=null;
 function dialBoostStart(){
  bbDial.classList.add("on");
+ clearInterval(dialTimer);
  dialTimer=setInterval(()=>{S.coins+=totalRate()*0.2;},200);
 }
 function dialBoostEnd(){
- bbDial.classList.remove("on");clearInterval(dialTimer);
+ bbDial.classList.remove("on");clearInterval(dialTimer);dialTimer=null;
  save();render();
 }
 bbDial.addEventListener("pointerdown",e=>{e.preventDefault();dialBoostStart();});
-["pointerup","pointerleave","pointercancel"].forEach(ev=>bbDial.addEventListener(ev,dialBoostEnd));
+["pointerup","pointercancel","blur","visibilitychange"].forEach(ev=>document.addEventListener(ev,dialBoostEnd));
 
 // 升级面板: 点击升级 + 长按连升 (PRD 8.3)
 document.getElementById("pClose").onclick=closePanel;
