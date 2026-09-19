@@ -601,6 +601,20 @@ function renderShopFace(){
 }
 function switchShop(d){
  let n=curShop+d;if(n<0)n=SHOPS.length-1;if(n>=SHOPS.length)n=0;
+ // 横滑过渡: 克隆当前图滑出, 露出新店
+ let old=document.querySelector(".yard-bg");
+ if(old){
+   let sliding=old.cloneNode(true);
+   sliding.classList.add("sliding");
+   sliding.style.zIndex=6;
+   old.parentElement.appendChild(sliding);
+   requestAnimationFrame(function(){
+     sliding.style.transition="transform .34s cubic-bezier(.4,0,.2,1),opacity .34s";
+     sliding.style.transform="translateX("+(d===1?"-100%":"100%")+")";
+     sliding.style.opacity="0";
+   });
+   setTimeout(function(){sliding.remove();},380);
+ }
  curShop=n;renderShopFace();refreshPanel();
 }
 function renderBanner(){
