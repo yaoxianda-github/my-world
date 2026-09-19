@@ -240,54 +240,86 @@ function drawYard(ctx, Core, t) {
   }
 }
 
-// ---------- 卡牌页 ----------
+// ---------- 卡牌页 (木牌原画风) ----------
 function drawCards(ctx, Core) {
   var S = Core.S;
-  btn(ctx, 12, TOP_H + 10, (W - 36) / 2, 44, "抽卡 · 5000币", C.orange, "#fff", 14);
-  btn(ctx, W / 2 + 6, TOP_H + 10, (W - 36) / 2, 44, S.adUsed ? "今日已用" : "广告翻倍", S.adUsed ? C.line : C.card, S.adUsed ? C.ink2 : C.brown, 13);
-  var y = TOP_H + 70;
-  text(ctx, "已持 " + S.cards.length + " / 8 张", 14, y + 8, 12, C.ink2, true);
-  y += 20;
+  var top = TOP_H, bot = H - 130, yh = bot - top;
+  // 深木底
+  var grad = ctx.createLinearGradient(0, top, 0, bot);
+  grad.addColorStop(0, "#4A3520"); grad.addColorStop(1, "#5C4228");
+  ctx.fillStyle = grad; ctx.fillRect(0, top, W, yh);
+  // 返回院子
+  ctx.fillStyle = "rgba(110,80,50,.6)";
+  rr(ctx, 8, top + 14, 30, 26, 6); ctx.fill();
+  text(ctx, "‹", 23, top + 27, 18, "#FFF8E8", true, "center");
+  hitAreas.push({ x: 8, y: top + 14, w: 30, h: 26, id: "back" });
+  // 标题木牌
+  rr(ctx, 90, top + 10, W - 180, 30, 8);
+  ctx.fillStyle = "#8A5A33"; ctx.fill();
+  text(ctx, "抽卡 · 集邮", W / 2, top + 25, 15, "#FFF8E8", true, "center");
+  // 两个操作钮
+  rr(ctx, 12, top + 52, (W - 36) / 2, 42, 10);
+  ctx.fillStyle = "#D97E3D"; ctx.fill();
+  text(ctx, "抽卡 5000币", 12 + (W - 36) / 4, top + 73, 13, "#fff", true, "center");
+  hitAreas.push({ x: 12, y: top + 52, w: (W - 36) / 2, h: 42, id: "draw" });
+  rr(ctx, W / 2 + 6, top + 52, (W - 36) / 2, 42, 10);
+  ctx.fillStyle = S.adUsed ? "#6B5540" : "#C9A227"; ctx.fill();
+  text(ctx, S.adUsed ? "今日已用" : "广告翻倍", W / 2 + 6 + (W - 36) / 4, top + 73, 12, "#fff", true, "center");
+  hitAreas.push({ x: W / 2 + 6, y: top + 52, w: (W - 36) / 2, h: 42, id: "ad" });
+  // 已持
+  text(ctx, "已持 " + S.cards.length + " / 8 张", 16, top + 112, 12, "#E8D3A8", true);
+  // 卡列表
+  var y = top + 124;
   Core.CARDS.forEach(function (cd, i) {
     var col = i % 2, row = Math.floor(i / 2);
-    var x = 10 + col * ((W - 28) / 2 + 8), w = (W - 28) / 2, h = 62;
+    var x = 10 + col * ((W - 28) / 2 + 8), w = (W - 28) / 2, h = 66;
     var yy = y + row * (h + 8);
     rr(ctx, x, yy, w, h, 10);
-    ctx.fillStyle = C.card; ctx.fill();
-    ctx.strokeStyle = cd.rar === "rare" ? C.gold : C.line; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = "#7A5A38"; ctx.fill();
+    ctx.strokeStyle = cd.rar === "rare" ? "#C9A227" : "#9A7A55"; ctx.lineWidth = 1.5; ctx.stroke();
     var owned = S.cards.indexOf(cd.id) >= 0;
-    text(ctx, cd.icon + cd.name + (owned ? " ✓" : ""), x + 10, yy + 16, 12, C.ink, true);
+    text(ctx, cd.icon + cd.name + (owned ? " ✓" : " ？"), x + 10, yy + 16, 12, "#FFF8E8", true);
     text(ctx, (cd.rar === "rare" ? "稀有" : "普通") + " · " + (cd.type === "mult" ? "乘区" : "加区"),
-      x + 10, yy + 36, 10, cd.rar === "rare" ? C.gold : C.ink2);
+      x + 10, yy + 36, 10, cd.rar === "rare" ? "#FFD980" : "#C9B18A");
     var tgt = { traffic: "客流量", spend: "客单价", rent: "租金减免" }[cd.target];
-    text(ctx, tgt + " +" + Math.round(cd.val * 100) + "%", x + 10, yy + 51, 11, C.orange, true);
+    text(ctx, tgt + " +" + Math.round(cd.val * 100) + "%", x + 10, yy + 54, 11, "#FFB870", true);
   });
 }
 
-// ---------- 任务页 ----------
+// ---------- 任务页 (木牌原画风) ----------
 function drawTasks(ctx, Core) {
   var S = Core.S;
-  text(ctx, "今日任务", 14, TOP_H + 16, 14, C.ink, true);
+  var top = TOP_H, bot = H - 130, yh = bot - top;
+  var grad = ctx.createLinearGradient(0, top, 0, bot);
+  grad.addColorStop(0, "#4A3520"); grad.addColorStop(1, "#5C4228");
+  ctx.fillStyle = grad; ctx.fillRect(0, top, W, yh);
+  ctx.fillStyle = "rgba(110,80,50,.6)";
+  rr(ctx, 8, top + 14, 30, 26, 6); ctx.fill();
+  text(ctx, "‹", 23, top + 27, 18, "#FFF8E8", true, "center");
+  hitAreas.push({ x: 8, y: top + 14, w: 30, h: 26, id: "back" });
+  rr(ctx, 110, top + 10, W - 220, 30, 8);
+  ctx.fillStyle = "#8A5A33"; ctx.fill();
+  text(ctx, "今日任务", W / 2, top + 25, 15, "#FFF8E8", true, "center");
+  var y0 = top + 52;
   Core.TASKS.forEach(function (t, i) {
-    var y = TOP_H + 32 + i * 88;
+    var y = y0 + i * 88;
     rr(ctx, 10, y, W - 20, 80, 12);
-    ctx.fillStyle = C.card; ctx.fill();
-    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.stroke();
-    text(ctx, t.name, 20, y + 16, 14, C.ink, true);
+    ctx.fillStyle = "#7A5A38"; ctx.fill();
+    ctx.strokeStyle = "#9A7A55"; ctx.lineWidth = 1; ctx.stroke();
+    text(ctx, t.name, 20, y + 16, 14, "#FFF8E8", true);
     var prog = Core.taskProgress(t.id);
-    // 每档进度
     t.tiers.forEach(function (need, k) {
       var key = t.id + "_" + k;
       var claimed = S.taskClaimed[key];
       var x0 = 20 + k * 118;
       var done = prog >= need;
       rr(ctx, x0, y + 30, 106, 22, 6);
-      ctx.fillStyle = done ? (claimed ? C.green : C.orange) : "#EFE6D6"; ctx.fill();
+      ctx.fillStyle = done ? (claimed ? "#7A8F6E" : "#D97E3D") : "#5C4228"; ctx.fill();
       var label = (claimed ? "✓ " : (done ? "领取 " : "")) + Math.min(prog, need) + "/" + need;
-      text(ctx, label, x0 + 53, y + 41, 10, done ? "#fff" : C.ink2, true, "center");
+      text(ctx, label, x0 + 53, y + 41, 10, done ? "#fff" : "#C9B18A", true, "center");
       if (done && !claimed) hitAreas.push({ x: x0, y: y + 30, w: 106, h: 22, id: "task:" + t.id + ":" + k });
     });
-    text(ctx, "奖励: " + t.rdesc, 20, y + 66, 10, C.ink2);
+    text(ctx, "奖励: " + t.rdesc, 20, y + 66, 10, "#C9B18A");
   });
 }
 
@@ -388,9 +420,11 @@ function onTouchEnd(x, y, Core) {
       else if (id === "next") { curShop = (curShop + 1) % Core.SHOPS.length; }
       else if (id.indexOf("panel:") === 0) Core.upgrade(parseInt(id.slice(6)));
       else if (id.indexOf("unlock:") === 0) Core.tryUnlock(parseInt(id.slice(7)));
+      else if (id === "back") { page = "street"; }
       else if (id === "btasks") { page = "tasks"; }
       else if (id === "bcards") { page = "cards"; }
-      else if (id === "bad") { Core.adDouble(); }
+      else if (id === "bad" || id === "ad") { Core.adDouble(); }
+      else if (id === "draw") { Core.drawCard(); }
       else if (id === "bsettle") { Core.settle(); }
       else if (id === "dial") { Core.S.speedUntil = Date.now() + 5000; Core.save(); }
       else if (id.indexOf("task:") === 0) {
