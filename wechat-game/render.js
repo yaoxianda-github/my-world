@@ -23,6 +23,19 @@ var C = {
   gold: "#C9A227", line: "#D8C8B2", red: "#C0392B"
 };
 
+// ---------- 院子原画 (5店) ----------
+var BG_FILES = ["assets/yard.png", "assets/shop1.png", "assets/shop2.png", "assets/shop3.png", "assets/shop4.png"];
+var BGS = [];
+var curShop = 0;
+function loadImages() {
+  var mk = (typeof wx !== "undefined" && wx.createImage) ? wx.createImage : function () { return new Image(); };
+  BG_FILES.forEach(function (f) {
+    var im = mk();
+    im.src = f;
+    BGS.push(im);
+  });
+}
+
 function rr(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -173,52 +186,58 @@ function drawPanorama(ctx, t) {
   drawWalker(ctx, ((t * 20 + 300) % (W + 120)) - 60, y + 6, "#7A8F6E", t * 5 + 4);
 }
 
-// ---------- 街道页 ----------
-function drawStreet(ctx, Core) {
+// ---------- 院子场景 (复刻 DOM 版: 原画+门脸+切店, 2026-09-19) ----------
+function drawYard(ctx, Core, t) {
   var S = Core.S, fmt = Core.fmt;
-  var y0 = TOP_H - scrollY;
+  var cx = W / 2;
+  var top = TOP_H, bot = H - 130;
+  var yh = bot - top;
+  // 背景原画
+  var im = BGS[curShop];
+  ctx.fillStyle = "#E8D5B5"; ctx.fillRect(0, top, W, yh);
+  if (im && im.width) {
+    var ir = im.width / im.height, cr = W / yh, dw, dh, dx, dy;
+    if (cr > ir) { dw = W; dh = W / ir; dx = 0; dy = top + (yh - dh) / 2; }
+    else { dh = yh; dw = yh * ir; dx = (W - dw) / 2; dy = top; }
+    ctx.drawImage(im, dx, dy, dw, dh);
+  }
+  // 门招牌
+  var sh = Core.SHOPS[curShop], st = S.shops[curShop];
+  var sw = 96, shh = 24, sx = cx - sw / 2, sy = top + yh * 0.38;
+  rr(ctx, sx, sy, sw, shh, 5); ctx.fillStyle = "#8A5A33"; ctx.fill();
+  text(ctx, sh.name, cx, sy + shh / 2, 13, "#FFF8E8", true, "center");
+  // Lv 标签
+  var tag = st.on ? ("Lv." + st.lv + "  +" + fmt(Core.shopRate(curShop) * Core.gEff().g) + "/s")
+                  : ("未建 繁荣" + sh.unlock);
+  ctx.font = "bold 11px sans-serif";
+  var tw = ctx.measureText(tag).width + 22;
+  rr(ctx, cx - tw / 2, sy + shh + 8, tw, 20, 10);
+  ctx.fillStyle = "rgba(70,53,42,.85)"; ctx.fill();
+  text(ctx, tag, cx, sy + shh + 18, 11, "#FFD980", true, "center");
+  // 门热区
+  hitAreas.push({ x: cx - 72, y: sy - 12, w: 144, h: yh * 0.46, id: st.on ? ("panel:" + curShop) : ("unlock:" + curShop) });
+  // 左右切店箭头
+  var ay = top + yh * 0.44, ah = 54;
+  ctx.fillStyle = "rgba(110,80,50,.55)";
+  rr(ctx, 4, ay, 30, ah, 6); ctx.fill();
+  rr(ctx, W - 34, ay, 30, ah, 6); ctx.fill();
+  text(ctx, "‹", 19, ay + ah / 2, 22, "#FFF8E8", true, "center");
+  text(ctx, "›", W - 19, ay + ah / 2, 22, "#FFF8E8", true, "center");
+  hitAreas.push({ x: 4, y: ay, w: 30, h: ah, id: "prev" });
+  hitAreas.push({ x: W - 34, y: ay, w: 30, h: ah, id: "next" });
+  // 店前两顾客
+  drawWalker(ctx, cx - 48, sy + shh + 86, "#4A6A8A", t * 2);
+  drawWalker(ctx, cx + 60, sy + shh + 86, "#B85C3C", t * 2 + 1);
   // 特殊顾客横幅
   if (S.special) {
-    var sp = S.special;
-    rr(ctx, 10, y0, W - 20, 46, 10);
-    ctx.fillStyle = C.gold; ctx.fill();
-    text(ctx, sp.icon + " " + sp.type + " 到店!", 22, y0 + 15, 13, "#fff", true);
-    text(ctx, sp.reward === "coin" ? "接待得金币" : "接待得繁荣", 22, y0 + 34, 11, "#fff");
-    hitAreas.push({ x: W - 92, y: y0 + 8, w: 80, h: 30, id: "special" });
-    rr(ctx, W - 92, y0 + 8, 80, 30, 15);
-    ctx.fillStyle = C.brick; ctx.fill();
-    text(ctx, "接待", W - 52, y0 + 23, 13, "#fff", true, "center");
-    y0 += 54;
+    var sp = S.special, by = top + 8;
+    rr(ctx, 10, by, W - 20, 40, 10); ctx.fillStyle = C.gold; ctx.fill();
+    text(ctx, sp.icon + " " + sp.type + " 到店!", 22, by + 14, 13, "#fff", true);
+    text(ctx, sp.reward === "coin" ? "接待得金币" : "接待得繁荣", 22, by + 31, 11, "#fff");
+    hitAreas.push({ x: W - 92, y: by + 6, w: 80, h: 28, id: "special" });
+    rr(ctx, W - 92, by + 6, 80, 28, 14); ctx.fillStyle = C.brick; ctx.fill();
+    text(ctx, "接待", W - 52, by + 20, 13, "#fff", true, "center");
   }
-  // 店铺卡片
-  Core.SHOPS.forEach(function (sh, i) {
-    var st = S.shops[i];
-    var x = 10, w = W - 20, h = 74;
-    var y = y0 + i * (h + 10);
-    rr(ctx, x, y, w, h, 12);
-    ctx.fillStyle = C.card; ctx.fill();
-    ctx.strokeStyle = st.on ? C.brown : C.line; ctx.lineWidth = 1.5; ctx.stroke();
-    if (!st.on) { ctx.strokeStyle = C.line; ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]); }
-    // 图标
-    rr(ctx, x + 10, y + 12, 46, 46, 8);
-    ctx.fillStyle = st.on ? C.brick : "#D8C8B2"; ctx.fill();
-    text(ctx, st.on ? sh.icon : "🔒", x + 33, y + 35, 20, "#fff", true, "center");
-    text(ctx, sh.name, x + 68, y + 20, 15, C.ink, true);
-    if (st.on) {
-      text(ctx, "Lv." + st.lv + " · 客流" + Math.round(sh.T0 * (1 + sh.a_t * (st.lv - 1))) + "/h", x + 68, y + 40, 11, C.ink2);
-      var r = Core.shopRate(i) * Core.gEff().g;
-      var c = Core.upCost(i);
-      text(ctx, "+" + fmt(r) + "/s", W - 14, y + 22, 13, C.orange, true, "right");
-      text(ctx, "升级 " + fmt(c), W - 14, y + 44, 12, S.coins >= c ? C.green : C.red, true, "right");
-      hitAreas.push({ x: x, y: y, w: w, h: h, id: "up:" + i });
-    } else {
-      text(ctx, "繁荣" + sh.unlock + " · 金币" + fmt(sh.build), x + 68, y + 40, 11, C.ink2);
-      text(ctx, S.prosper >= sh.unlock ? "可修建" : "未解锁", W - 14, y + 30, 12, S.prosper >= sh.unlock ? C.green : C.ink2, true, "right");
-      hitAreas.push({ x: x, y: y, w: w, h: h, id: "unlock:" + i });
-    }
-  });
-  var contentH = (Core.SHOPS.length) * 84 + (S.special ? 60 : 10) + 60;
-  hitAreas.push({ x: 0, y: 0, w: W, h: H, id: "scroll", scrollable: true, contentH: contentH, viewH: H - TOP_H - SETTLE_H - TAB_H });
 }
 
 // ---------- 卡牌页 ----------
@@ -272,27 +291,37 @@ function drawTasks(ctx, Core) {
   });
 }
 
-// ---------- 结算条 + 底部 tab ----------
+// ---------- 底部五按钮 (复刻竞品: 任务/卡牌/长按表盘/宣传/结算) ----------
 function drawBottom(ctx, Core) {
-  var S = Core.S, fmt = Core.fmt;
-  var y0 = H - SETTLE_H - TAB_H;
-  // 结算条
-  ctx.fillStyle = C.card; ctx.fillRect(0, y0, W, SETTLE_H);
-  ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(W, y0); ctx.stroke();
-  text(ctx, "顾客 " + Math.floor(S.cust) + "/" + Core.custTarget(S.day), 14, y0 + 16, 12, C.ink2, true);
-  text(ctx, "明日租金 " + fmt(Core.rentDay(S.day + 1)), 14, y0 + 38, 11, C.ink2);
-  btn(ctx, W - 120, y0 + 8, 108, 42, "结算 · 推进一天", C.orange, "#fff", 13);
-  // tab
-  var tabs = [["street", "街道"], ["cards", "卡牌"], ["tasks", "任务"]];
-  var tw = W / 3, ty = H - TAB_H;
-  ctx.fillStyle = C.card; ctx.fillRect(0, ty, W, TAB_H);
-  ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(0, ty); ctx.lineTo(W, ty); ctx.stroke();
-  tabs.forEach(function (t, i) {
-    var on = page === t[0];
-    if (on) { ctx.fillStyle = C.paper; ctx.fillRect(i * tw, ty, tw, TAB_H); }
-    text(ctx, t[1], i * tw + tw / 2, ty + TAB_H / 2, 13, on ? C.brick : C.ink2, on, "center");
-    hitAreas.push({ x: i * tw, y: ty, w: tw, h: TAB_H, id: "tab:" + t[0] });
+  var S = Core.S;
+  var bh = 62, by = H - bh;
+  // 木底
+  ctx.fillStyle = "#5C4228"; ctx.fillRect(0, by, W, bh);
+  ctx.fillStyle = "#4A3520"; ctx.fillRect(0, by, W, 3);
+  // 五个槽位
+  var dialX = W / 2;
+  var slots = [
+    { id: "btasks", label: "任务", x: W * 0.10 },
+    { id: "bcards", label: "卡牌", x: W * 0.30 },
+    { id: "bad", label: "宣传", x: W * 0.70 },
+    { id: "bsettle", label: "结算", x: W * 0.90 }
+  ];
+  slots.forEach(function (s) {
+    rr(ctx, s.x - 30, by + 8, 60, 40, 8);
+    ctx.fillStyle = "#8A5A33"; ctx.fill();
+    text(ctx, s.label, s.x, by + 32, 12, "#FFF8E8", true, "center");
+    hitAreas.push({ x: s.x - 30, y: by + 8, w: 60, h: 40, id: s.id });
   });
+  // 中间表盘
+  var r = 30;
+  var grad = ctx.createRadialGradient(dialX - 8, by + bh / 2 - 8, 4, dialX, by + bh / 2, r);
+  grad.addColorStop(0, "#E8C87A"); grad.addColorStop(1, "#C9963A");
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(dialX, by + bh / 2, r, 0, 7); ctx.fill();
+  ctx.strokeStyle = "#6B4A2E"; ctx.lineWidth = 3; ctx.stroke();
+  text(ctx, "长按", dialX, by + bh / 2 - 8, 13, "#5C4228", true, "center");
+  text(ctx, "加速", dialX, by + bh / 2 + 8, 13, "#5C4228", true, "center");
+  hitAreas.push({ x: dialX - r, y: by + bh / 2 - r, w: r * 2, h: r * 2, id: "dial" });
 }
 
 // ---------- Toast ----------
@@ -313,10 +342,10 @@ function draw(ctx, Core, w, h) {
   ctx.fillStyle = C.paper;
   ctx.fillRect(0, 0, W, H);
   hitAreas = [];
-  if (page === "street") drawPanorama(ctx, Date.now() / 1000);
-  if (page === "cards") drawCards(ctx, Core);
+  var t = Date.now() / 1000;
+  if (page === "street") drawYard(ctx, Core, t);
+  else if (page === "cards") drawCards(ctx, Core);
   else if (page === "tasks") drawTasks(ctx, Core);
-  else drawStreet(ctx, Core);
   drawBottom(ctx, Core);
   drawToast(ctx, Core);
 }
@@ -355,13 +384,18 @@ function onTouchEnd(x, y, Core) {
         else if (lbl === "结算 · 推进一天") Core.settle();
         else if (lbl === "广告翻倍" || lbl === "今日已用") if (!Core.S.adUsed) Core.adDouble();
       } else if (id === "special") Core.serveSpecial();
-      else if (id.indexOf("up:") === 0) Core.upgrade(parseInt(id.slice(3)));
+      else if (id === "prev") { curShop = (curShop + Core.SHOPS.length - 1) % Core.SHOPS.length; }
+      else if (id === "next") { curShop = (curShop + 1) % Core.SHOPS.length; }
+      else if (id.indexOf("panel:") === 0) Core.upgrade(parseInt(id.slice(6)));
       else if (id.indexOf("unlock:") === 0) Core.tryUnlock(parseInt(id.slice(7)));
+      else if (id === "btasks") { page = "tasks"; }
+      else if (id === "bcards") { page = "cards"; }
+      else if (id === "bad") { Core.adDouble(); }
+      else if (id === "bsettle") { Core.settle(); }
+      else if (id === "dial") { Core.S.speedUntil = Date.now() + 5000; Core.save(); }
       else if (id.indexOf("task:") === 0) {
         var parts = id.slice(5).split(":");
         Core.claimTask(parseInt(parts[0]), parseInt(parts[1]));
-      } else if (id.indexOf("tab:") === 0) {
-        page = id.slice(4); scrollY = 0;
       }
       break;
     }
@@ -369,6 +403,7 @@ function onTouchEnd(x, y, Core) {
 }
 function getPage() { return page; }
 
+loadImages();
 global.Render = { draw: draw, onTouchStart: onTouchStart, onTouchMove: onTouchMove, onTouchEnd: onTouchEnd, getPage: getPage };
 
 })(typeof window !== "undefined" ? window : globalThis);
