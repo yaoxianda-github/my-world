@@ -143,19 +143,19 @@ function adDouble() {
 
 // ---------- 特殊顾客 (2026-09-19) ----------
 var SPECIAL_TYPES = [
-  { type: "阔佬",   icon: "🎩", reward: "coin",  amount: 600 },
-  { type: "艺人",   icon: "🎭", reward: "prosp", amount: 80 },
-  { type: "游客",   icon: "🧳", reward: "coin",  amount: 300 }
+  { type: "阔佬",   icon: "🎩", reward: "coin",  amount: 120 },
+  { type: "艺人",   icon: "🎭", reward: "prosp" },
+  { type: "游客",   icon: "🧳", reward: "coin",  amount: 60 }
 ];
 function newSpecial() {
   var t = SPECIAL_TYPES[Math.floor(Math.random() * SPECIAL_TYPES.length)];
-  S.special = { type: t.type, icon: t.icon, reward: t.reward, amount: t.amount, until: Date.now() + 30000 };
+  S.special = { type: t.type, icon: t.icon, reward: t.reward, amount: t.amount, until: Date.now() + 45000 };
 }
 function serveSpecial() {
   if (!S.special) return;
   var sp = S.special;
   if (sp.reward === "coin") { var v = totalRate() * sp.amount; S.coins += v; toast(sp.icon + " " + sp.type + " 打赏 +" + fmt(v) + "币"); }
-  else { S.prosper += sp.amount; toast(sp.icon + " " + sp.type + " 助力 繁荣+" + sp.amount); }
+  else { var v = Math.max(50, Math.floor(S.prosper * 0.03)); S.prosper += v; toast(sp.icon + " " + sp.type + " 助力 繁荣+" + v); }
   S.special = null; S.specialAt = Date.now(); checkMilestones(); save();
 }
 
@@ -195,8 +195,8 @@ function tick(dt) {
   S.coins += totalRate() * dt;
   S.cust += totalRate() * dt / 10;
   S.onlineSec += dt;
-  // 特殊顾客生成: 距上次接待 2-5 分钟随机
-  if (!S.special && (Date.now() - S.specialAt > 120000 + Math.random() * 180000)) newSpecial();
+  // 特殊顾客生成: 首次40-80秒, 之后间隔60-120秒
+  if (!S.special && (Date.now() - S.specialAt > 40000 + Math.random() * 40000)) newSpecial();
   // 特殊顾客过期
   if (S.special && Date.now() > S.special.until) { S.special = null; S.specialAt = Date.now(); }
 }

@@ -35,7 +35,8 @@
   .shop{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--brown);border-radius:12px;padding:10px;cursor:pointer;transition:transform .1s}
   .shop:active{transform:scale(.98)}
   .shop.locked{border-style:dashed;opacity:.7;background:rgba(255,253,248,.6)}
-  .shop .roof{width:44px;height:44px;flex:none;background:var(--brick);border-radius:8px;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center}
+  .shop .roof{width:56px;height:56px;flex:none;display:flex;align-items:center;justify-content:center}
+  .shop .roof svg{display:block}
   .shop .info{flex:1;min-width:0}
   .shop .sname{font-size:15px;font-weight:800}
   .shop .smeta{font-size:11px;color:var(--ink2);margin-top:2px}
@@ -152,14 +153,54 @@ const SHOPS=[
 const PROSP_GAIN={0:[[1,10,5],[11,30,8]],1:[[1,10,6]],2:[[1,20,10]],3:[[1,10,9],[11,30,12]],4:[[1,20,12]]};
 const MILESTONES=[[110,"+5000币",5000],[500,"+3600加速",0],[1000,"广告翻倍",0],[2000,"抽卡",0]];
 const CARDS=[
- {id:1001,rar:"common",name:"老主顾",type:"add",target:"traffic",val:.15},
- {id:1002,rar:"common",name:"招牌",type:"add",target:"spend",val:.20},
- {id:1003,rar:"rare",name:"人气网红",type:"mult",target:"traffic",val:.25},
- {id:1004,rar:"rare",name:"老街物业",type:"add",target:"rent",val:.10},
- {id:1005,rar:"common",name:"熟客",type:"add",target:"traffic",val:.10},
- {id:1006,rar:"common",name:"公道价",type:"add",target:"spend",val:.10},
- {id:1007,rar:"common",name:"街坊关系",type:"add",target:"rent",val:.05},
- {id:1008,rar:"rare",name:"匠心手作",type:"mult",target:"spend",val:.20},
+ {id:1001,rar:"common",name:"老主顾",  icon:"👴",type:"add",target:"traffic",val:.15},
+ {id:1002,rar:"common",name:"金字招牌",icon:"🏮",type:"add",target:"spend",  val:.20},
+ {id:1003,rar:"rare",  name:"人气网红",icon:"📸",type:"mult",target:"traffic",val:.25},
+ {id:1004,rar:"rare",  name:"老街物业",icon:"🏘️",type:"add",target:"rent",   val:.10},
+ {id:1005,rar:"common",name:"熟客",    icon:"🙂",type:"add",target:"traffic",val:.10},
+ {id:1006,rar:"common",name:"公道价",  icon:"⚖️",type:"add",target:"spend",  val:.10},
+ {id:1007,rar:"common",name:"街坊关系",icon:"🤝",type:"add",target:"rent",   val:.05},
+ {id:1008,rar:"rare",  name:"匠心手作",icon:"🛠️",type:"mult",target:"spend", val:.20},
+];
+// ============ 店铺插画 (内联SVG, 暖纸治愈系) ============
+const ICONS=[
+ `<svg viewBox="0 0 64 64" width="56" height="56"><rect x="1" y="1" width="62" height="62" rx="15" fill="#F6E7CE"/>
+ <path d="M12 33h40v25H12z" fill="#B85C3C"/><path d="M10 33l22-14 22 14z" fill="#6B4A2E"/>
+ <rect x="27" y="47" width="10" height="11" fill="#46352A" rx="2"/><rect x="36" y="30" width="5" height="16" fill="#8A5A33" rx="1.5"/>
+ <circle cx="19" cy="13" r="5.5" fill="none" stroke="#C9A227" stroke-width="3.5"/>
+ <path d="M19 18v9" stroke="#C9A227" stroke-width="3.5" stroke-linecap="round"/>
+ <path d="M19 23h5M19 26h4" stroke="#C9A227" stroke-width="3.5" stroke-linecap="round"/></svg>`,
+ `<svg viewBox="0 0 64 64" width="56" height="56"><rect x="1" y="1" width="62" height="62" rx="15" fill="#E8F0E1"/>
+ <path d="M18 34h38v24H18z" fill="#7A8F6E"/><path d="M16 34l21-13 21 13z" fill="#5C7050"/>
+ <rect x="34" y="47" width="8" height="11" fill="#3D4A38" rx="2"/>
+ <circle cx="13" cy="25" r="8.5" fill="none" stroke="#B85C3C" stroke-width="3"/>
+ <circle cx="13" cy="25" r="3" fill="none" stroke="#B85C3C" stroke-width="2.5"/>
+ <path d="M13 16v18M4.5 25h17" stroke="#B85C3C" stroke-width="1.4" opacity=".75"/>
+ <path d="M6 20l7-7 7 7" stroke="#6B4A2E" stroke-width="2.2" fill="none" stroke-linejoin="round"/></svg>`,
+ `<svg viewBox="0 0 64 64" width="56" height="56"><rect x="1" y="1" width="62" height="62" rx="15" fill="#FCEBDD"/>
+ <path d="M11 33h42v24H11z" fill="#D97E3D"/><path d="M9 33l23-12 23 12z" fill="#8A5A33"/>
+ <rect x="15" y="40" width="21" height="14" rx="2" fill="#DCEAF2"/>
+ <rect x="20" y="44" width="11" height="8" rx="1" fill="#C9A227"/>
+ <path d="M20 44h11M25.5 44v8" stroke="#C0392B" stroke-width="2"/>
+ <path d="M20 44l4-3 3.5 3" stroke="#C0392B" stroke-width="1.6" fill="none"/>
+ <rect x="42" y="42" width="10" height="10" rx="2" fill="#C9A227"/>
+ <path d="M42 47h10M47 42v10" stroke="#C0392B" stroke-width="1.8"/>
+ <path d="M48 28l4 3-4 3" stroke="#6B4A2E" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`,
+ `<svg viewBox="0 0 64 64" width="56" height="56"><rect x="1" y="1" width="62" height="62" rx="15" fill="#E9EFE0"/>
+ <path d="M9 36h46v21H9z" fill="#7A8F6E"/><path d="M7 36c7-9 16-11 25-11s18 2 25 11z" fill="#5C7050"/>
+ <path d="M13 34c3-3 7-5 11-6M51 34c-3-3-7-5-11-6" stroke="#5C7050" stroke-width="3" fill="none" stroke-linecap="round"/>
+ <rect x="27" y="46" width="10" height="11" fill="#3D4A38" rx="2"/>
+ <path d="M55 22c5-3 8 2 3 5-2 1.5-4 .5-3-1.5z" fill="#8A6A45"/>
+ <circle cx="53" cy="30" r="7.5" fill="#7FB3A6" stroke="#5C8A7E" stroke-width="1.5"/>
+ <path d="M53 25c0 3-3 4-4 5M57 26c-1 3-4 4-5 5" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".85"/></svg>`,
+ `<svg viewBox="0 0 64 64" width="56" height="56"><rect x="1" y="1" width="62" height="62" rx="15" fill="#F7F0E2"/>
+ <path d="M13 33h39v24H13z" fill="#8A6A45"/><path d="M11 33l21.5-13L54 33z" fill="#5C4A33"/>
+ <rect x="30" y="46" width="8" height="11" fill="#46352A" rx="2"/>
+ <rect x="12" y="13" width="19" height="14" rx="2.5" fill="#FFFDF8"/>
+ <rect x="12" y="13" width="19" height="3" fill="#C0392B"/>
+ <rect x="10.5" y="23" width="2.5" height="7" rx="1.2" fill="#6B4A2E"/>
+ <rect x="30" y="23" width="2.5" height="7" rx="1.2" fill="#6B4A2E"/>
+ <path d="M17 19c1.5-1.2 4-1.2 5.5 0M24 19c1.5-1.2 4-1.2 5.5 0" stroke="#46352A" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>`,
 ];
 const P={eta:.5,tOffMax:8*3600,kAd:2,promo:.5,gMax:10,rentBase:200,rRent:1.15,cust:[60,80,100,125,150]};
 const TASKS=[
@@ -168,9 +209,9 @@ const TASKS=[
  {id:2003,name:"在线时长",desc:"今日在线 20/30 分钟",tiers:[1200,1800],reward:"speed600",rdesc:"600秒加速"},
 ];
 const SPECIALS=[
- {type:"阔佬",icon:"🎩",reward:"coin",amount:600},
- {type:"艺人",icon:"🎭",reward:"prosp",amount:80},
- {type:"游客",icon:"🧳",reward:"coin",amount:300},
+ {type:"阔佬",icon:"🎩",reward:"coin",amount:120},
+ {type:"艺人",icon:"🎭",reward:"prosp"},
+ {type:"游客",icon:"🧳",reward:"coin",amount:60},
 ];
 
 // ============ 状态 ============
@@ -258,13 +299,13 @@ function adDouble(){
 // ============ 特殊顾客 (2026-09-19) ============
 function newSpecial(){
  let t=SPECIALS[Math.floor(Math.random()*SPECIALS.length)];
- S.special={type:t.type,icon:t.icon,reward:t.reward,amount:t.amount,until:Date.now()+30000};
+ S.special={type:t.type,icon:t.icon,reward:t.reward,amount:t.amount,until:Date.now()+45000};
 }
 function serveSpecial(){
  if(!S.special)return;
  let sp=S.special;
  if(sp.reward==="coin"){let v=totalRate()*sp.amount;S.coins+=v;toast(`${sp.icon}${sp.type} 打赏 +${fmt(v)}币`);}
- else{S.prosper+=sp.amount;toast(`${sp.icon}${sp.type} 助力 繁荣+${sp.amount}`);}
+ else{let v=Math.max(50,Math.floor(S.prosper*0.03));S.prosper+=v;toast(`${sp.icon}${sp.type} 助力 繁荣+${v}`);}
  S.special=null;S.specialAt=Date.now();checkMilestones();save();render();
 }
 
@@ -328,7 +369,7 @@ function render(){
   div.className="shop"+(st.on?"":" locked");
   if(st.on){
    let c=upCost(i),r=shopRate(i)*gEff().g;
-   div.innerHTML=`<div class="roof">${sh.icon}</div>
+   div.innerHTML=`<div class="roof">${ICONS[i]}</div>
     <div class="info"><div class="sname">${sh.name}</div>
      <div class="smeta">Lv.${st.lv} · 客流${Math.round(sh.T0*(1+sh.a_t*(st.lv-1)))}/h</div></div>
     <div class="right"><div class="rate">${fmt(r)}/s</div>
@@ -336,7 +377,7 @@ function render(){
    div.onclick=()=>upgrade(i);
   }else{
    let can=S.prosper>=sh.unlock&&S.coins>=sh.build;
-   div.innerHTML=`<div class="roof">🔒</div>
+   div.innerHTML=`<div class="roof" style="font-size:26px;opacity:.75">🔒</div>
     <div class="info"><div class="sname">${sh.name} ?</div>
      <div class="lock-info">繁荣${sh.unlock} + 金币${fmt(sh.build)}</div>
      <div class="lock-info">需繁荣${fmt(sh.unlock)} (现${fmt(S.prosper)})</div></div>
@@ -380,8 +421,8 @@ function tick(){
  // 顾客数随产出累积 (简化: 每产出10币=1客)
  S.cust+=totalRate()*dt/10;
  S.onlineSec+=dt;
- // 特殊顾客生成: 距上次接待 2-5 分钟随机; 30秒后消失
- if(!S.special&&(now-S.specialAt>120000+Math.random()*180000))newSpecial();
+ // 特殊顾客生成: 首次40-80秒, 之后间隔60-120秒; 停留45秒
+ if(!S.special&&(now-S.specialAt>40000+Math.random()*40000))newSpecial();
  if(S.special&&now>S.special.until){S.special=null;S.specialAt=now;}
  document.getElementById("coins").textContent=fmt(S.coins);
  document.getElementById("perSec").textContent="+"+totalRate().toFixed(1)+"/s";
