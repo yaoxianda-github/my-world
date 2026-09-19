@@ -151,18 +151,21 @@
   /* 升级面板 */
   .panel-mask{position:fixed;inset:0;background:rgba(70,53,42,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
   .panel-mask.on{display:flex}
-  .panel{width:100%;max-width:480px;background:var(--paper);border-radius:18px 18px 0 0;padding:16px 18px 22px;
-    box-shadow:0 -6px 24px rgba(70,53,42,.25);animation:panelUp .22s ease-out}
+  .panel{width:100%;max-width:480px;background:linear-gradient(180deg,#F3E4C4,#E8D3A8);border-top:3px solid #6B4A2E;
+    border-radius:18px 18px 0 0;padding:16px 18px 22px;position:relative;
+    box-shadow:0 -6px 24px rgba(70,53,42,.35);animation:panelUp .22s ease-out}
   @keyframes panelUp{from{transform:translateY(60px);opacity:.4}to{transform:translateY(0);opacity:1}}
-  .p-head{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800}
-  .p-head .p-close{margin-left:auto;background:none;border:none;font-size:24px;color:var(--ink2);cursor:pointer;padding:0 4px}
-  .p-stats{font-size:12px;color:var(--ink2);margin-top:6px;display:flex;gap:14px}
-  .p-stats b{color:var(--ink)}
-  .p-rate{font-size:13px;color:var(--orange);font-weight:800;margin-top:8px}
-  .p-up{width:100%;margin-top:12px;background:linear-gradient(180deg,var(--orange),#C96A2B);color:#fff;border:none;
-    border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;touch-action:none}
-  .p-up:active{transform:scale(.98)}
-  .p-hint{text-align:center;font-size:10px;color:var(--ink2);margin-top:6px}
+  .p-head{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800;color:#5C4228;
+    background:#8A5A33;color:#FFF8E8;border-radius:8px;padding:8px 12px;box-shadow:0 2px 4px rgba(60,40,20,.25)}
+  .p-head .p-close{margin-left:auto;background:none;border:none;font-size:24px;color:#FFF8E8;cursor:pointer;padding:0 4px}
+  .p-stats{font-size:12px;color:#6B4A2E;margin-top:10px;display:flex;gap:14px}
+  .p-stats b{color:#46352A}
+  .p-rate{font-size:13px;color:#B85C3C;font-weight:800;margin-top:8px}
+  .p-up{width:100%;margin-top:12px;background:linear-gradient(180deg,#D97E3D,#B85C3C);color:#fff;border:none;
+    border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;touch-action:none;
+    box-shadow:0 3px 0 #8A4028}
+  .p-up:active{transform:scale(.98);box-shadow:0 1px 0 #8A4028}
+  .p-hint{text-align:center;font-size:10px;color:#8A6A4A;margin-top:6px}
   /* 收益/升级冒字 */
   .float-text{position:absolute;z-index:8;font-size:13px;font-weight:800;color:var(--brick);
     animation:floatUp 1.2s ease-out forwards;pointer-events:none;white-space:nowrap}
