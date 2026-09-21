@@ -111,6 +111,28 @@
   #shopDoor.press{transform:scaleX(.96)}
   @keyframes coinPop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
   #coins.pop{display:inline-block;animation:coinPop .25s ease-out}
+  /* 横卷街景(清明上河图式) */
+  .street-scroll{position:absolute;inset:0;z-index:2;overflow-x:auto;overflow-y:hidden;display:none;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .street-scroll::-webkit-scrollbar{display:none}
+  .street-scroll.on{display:block}
+  .street-inner{position:relative;width:320%;height:100%}
+  .street-inner img{width:100%;height:100%;object-fit:cover;object-position:bottom}
+  .shop-mark{position:absolute;top:52%;width:54px;height:96px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-end;z-index:3}
+  .shop-mark .mdoor{width:44px;height:72px;background:#5C4228;border:2px solid #8A6A48;border-radius:4px 4px 0 0;
+    box-shadow:inset 0 0 0 3px #3D2E22}
+  .shop-mark .mtag{margin-top:4px;background:#8A5A33;color:#FFF8E8;font-size:10px;font-weight:700;
+    padding:2px 8px;border-radius:4px;white-space:nowrap;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+  .shop-mark.locked .mdoor{background:#7A6A55}
+  .shop-mark.locked .mtag{background:#6B5540}
+  #backToStreet{position:absolute;top:12px;left:12px;z-index:8;background:#8A5A33;color:#FFF8E8;
+    border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;display:none}
+  #backToStreet.on{display:block}
+  /* 街景/院子两种模式: 街景模式下隐藏院子近景元素 */
+  #yard .shop-face,#yard .yard-nav,#yard .kids,#yard #npcLayer,#yard #daylight{display:none}
+  #yard.yardMode .shop-face,#yard.yardMode .yard-nav,#yard.yardMode .kids,#yard.yardMode #npcLayer,#yard.yardMode #daylight{display:block}
+  #yard.yardMode .street-scroll{display:none!important}
   .kids{position:absolute;bottom:1%;width:34%;z-index:4;pointer-events:none;mix-blend-mode:multiply;
     -webkit-mask-image:radial-gradient(ellipse 60% 70% at 50% 60%,#000 55%,transparent 95%);
     mask-image:radial-gradient(ellipse 60% 70% at 50% 60%,#000 55%,transparent 95%);
@@ -279,6 +301,16 @@
   <img class="yard-bg" src="assets/yard.png" alt="">
   <div class="page on" id="pageStreet">
     <div class="yard" id="yard">
+      <!-- 横卷街景 -->
+      <div class="street-scroll on" id="streetScroll"><div class="street-inner" id="streetInner">
+        <img src="assets/longstreet.jpg" alt="">
+        <div class="shop-mark" style="left:6%" data-shop="0"><div class="mdoor"></div><div class="mtag">配钥匙</div></div>
+        <div class="shop-mark" style="left:24%" data-shop="1"><div class="mdoor"></div><div class="mtag">自行车</div></div>
+        <div class="shop-mark" style="left:44%" data-shop="2"><div class="mdoor"></div><div class="mtag">纪念品</div></div>
+        <div class="shop-mark" style="left:64%" data-shop="3"><div class="mdoor"></div><div class="mtag">茶馆</div></div>
+        <div class="shop-mark" style="left:86%" data-shop="4"><div class="mdoor"></div><div class="mtag">书画斋</div></div>
+      </div></div>
+      <button id="backToStreet">‹ 逛老街</button>
       <!-- 店铺门脸(随店切换) -->
       <div class="shop-face" id="shopFace">
         <div class="door" id="shopDoor">
@@ -756,6 +788,23 @@ document.getElementById("adBtn").onclick=adDouble;
 // 场景左右切店 + 点门脸开面板
 document.getElementById("navLeft").onclick=()=>switchShop(-1);
 document.getElementById("navRight").onclick=()=>switchShop(1);
+// 横卷街景: 点店铺标记进院子, 点返回回街景
+document.querySelectorAll(".shop-mark").forEach(function(mk){
+ mk.onclick=()=>{
+   let i=parseInt(mk.dataset.shop);
+   if(!S.shops[i].on){toast("需先修建此店");return;}
+   curShop=i;renderShopFace();
+   document.getElementById("streetScroll").classList.remove("on");
+   document.getElementById("backToStreet").classList.add("on");
+   document.getElementById("yard").classList.add("yardMode");
+ };
+});
+document.getElementById("backToStreet").onclick=()=>{
+ document.getElementById("streetScroll").classList.add("on");
+ document.getElementById("backToStreet").classList.remove("on");
+ document.getElementById("yard").classList.remove("yardMode");
+ closePanel();
+};
 document.getElementById("shopFace").onclick=()=>{
  let d=document.getElementById("shopDoor");
  d.classList.add("press");setTimeout(()=>d.classList.remove("press"),120);
