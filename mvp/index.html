@@ -457,7 +457,16 @@ function load(){
   if(!d)return defaultState();
   // 旧存档合并新字段
   let base=defaultState();
-  return Object.assign(base,d,{shops:d.shops||base.shops,taskClaimed:d.taskClaimed||{}});
+  let shops=(Array.isArray(d.shops)?d.shops:base.shops.slice());
+  for(let i=0;i<base.shops.length;i++){
+   if(!shops[i])shops[i]={lv:1,on:false};
+   if(typeof shops[i].lv!=="number")shops[i].lv=1;
+   if(typeof shops[i].on!=="boolean")shops[i].on=(i===0);
+  }
+  let merged=Object.assign(base,d,{shops,taskClaimed:d.taskClaimed||{}});
+  if(!Array.isArray(merged.cards))merged.cards=[];
+  if(!Array.isArray(merged.msHit))merged.msHit=[];
+  return merged;
  }catch(e){return defaultState();}
 }
 S=load();

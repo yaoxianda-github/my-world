@@ -46,8 +46,22 @@ function defaultState() {
   };
 }
 function load() {
-  try { var d = global.wx && wx.getStorageSync ? wx.getStorageSync(KEY) : JSON.parse(localStorage.getItem(KEY)); return d || defaultState(); }
-  catch (e) { return defaultState(); }
+  var d = null;
+  try { d = global.wx && wx.getStorageSync ? wx.getStorageSync(KEY) : JSON.parse(localStorage.getItem(KEY)); } catch (e) { d = null; }
+  if (!d || typeof d !== "object") return defaultState();
+  // 字段级归一化: 老存档/损坏存档缺字段时补默认, 防 gEff/tick 读 undefined
+  var base = defaultState();
+  for (var k in base) if (d[k] === undefined) d[k] = base[k];
+  if (!Array.isArray(d.shops)) d.shops = base.shops.slice();
+  else for (var i = 0; i < base.shops.length; i++) {
+    if (!d.shops[i]) d.shops[i] = { lv: 1, on: false };
+    if (typeof d.shops[i].lv !== "number") d.shops[i].lv = 1;
+    if (typeof d.shops[i].on !== "boolean") d.shops[i].on = (i === 0);
+  }
+  if (!Array.isArray(d.cards)) d.cards = [];
+  if (!Array.isArray(d.msHit)) d.msHit = [];
+  if (typeof d.taskClaimed !== "object" || d.taskClaimed === null) d.taskClaimed = {};
+  return d;
 }
 function save() {
   S.last = Date.now();
