@@ -28,6 +28,10 @@ var BG_FILES = ["assets/yard.jpg", "assets/shop1.jpg", "assets/shop2.jpg", "asse
 var BGS = [];
 var curShop = 0;
 var openShop = -1;   // >=0 时弹升级面板
+var mode = "street"; // street=横卷老街 | yard=院子近景 (与DOM版一致默认横卷)
+var scrollX = 0;
+var streetImg = null;
+var touchStartX = 0;
 function loadImages() {
   var mk = (typeof wx !== "undefined" && wx.createImage) ? wx.createImage : function () { return new Image(); };
   BG_FILES.forEach(function (f) {
@@ -35,6 +39,8 @@ function loadImages() {
     im.src = f;
     BGS.push(im);
   });
+  streetImg = mk();
+  streetImg.src = "assets/longstreet.jpg";
 }
 
 function rr(ctx, x, y, w, h, r) {
@@ -187,6 +193,45 @@ function drawPanorama(ctx, t) {
   drawWalker(ctx, ((t * 20 + 300) % (W + 120)) - 60, y + 6, "#7A8F6E", t * 5 + 4);
 }
 
+// ---------- 横卷老街 (清明上河图式, 同步 DOM 版方案B) ----------
+function drawStreetView(ctx, Core, t) {
+  var S = Core.S, fmt = Core.fmt;
+  var top = TOP_H, bot = H - 130, yh = bot - top;
+  ctx.fillStyle = "#E8D5B5"; ctx.fillRect(0, top, W, yh);
+  var im = streetImg;
+  if (im && im.width) {
+    // cover: 高填满, 宽按 2:1
+    var dh = yh, dw = yh * 2;
+    ctx.drawImage(im, -scrollX, top, dw, dh);
+    // 长卷右侧渐隐提示可滑动
+    var g = ctx.createLinearGradient(W - 46, 0, W, 0);
+    g.addColorStop(0, "rgba(232,213,181,0)"); g.addColorStop(1, "rgba(232,213,181,.9)");
+    ctx.fillStyle = g; ctx.fillRect(W - 46, top, 46, yh);
+  }
+  var maxS = Math.max(0, yh * 2 - W);
+  // 5 个店标记 (位置同 DOM: 相对长卷宽 6/24/44/64/86%)
+  var marks = [0.06, 0.24, 0.44, 0.64, 0.86];
+  marks.forEach(function (f, i) {
+    var mx = f * (yh * 2) - scrollX;
+    var my = top + yh * 0.52;
+    var st = S.shops[i];
+    // 门
+    rr(ctx, mx - 22, my - 36, 44, 72, 4);
+    ctx.fillStyle = st.on ? "#5C4228" : "#7A6A55"; ctx.fill();
+    ctx.strokeStyle = "#8A6A48"; ctx.lineWidth = 2; ctx.stroke();
+    // 名字牌
+    var nm = Core.SHOPS[i].name.replace("铺", "").replace("斋", "");
+    ctx.font = "bold 11px sans-serif";
+    var nw = ctx.measureText(nm).width + 16;
+    rr(ctx, mx - nw / 2, my + 40, nw, 20, 5);
+    ctx.fillStyle = st.on ? "#8A5A33" : "#6B5540"; ctx.fill();
+    text(ctx, nm, mx, my + 50, 11, "#FFF8E8", true, "center");
+    hitAreas.push({ x: mx - 30, y: my - 40, w: 60, h: 104, id: "smark:" + i });
+  });
+  // 拖动区域
+  hitAreas.push({ x: 0, y: top, w: W, h: yh, id: "scroll", max: maxS });
+}
+
 // ---------- 院子场景 (复刻 DOM 版: 原画+门脸+切店, 2026-09-19) ----------
 function drawYard(ctx, Core, t) {
   var S = Core.S, fmt = Core.fmt;
@@ -226,6 +271,11 @@ function drawYard(ctx, Core, t) {
   text(ctx, "›", W - 19, ay + ah / 2, 22, "#FFF8E8", true, "center");
   hitAreas.push({ x: 4, y: ay, w: 30, h: ah, id: "prev" });
   hitAreas.push({ x: W - 34, y: ay, w: 30, h: ah, id: "next" });
+  // 返回老街 (横卷模式进入院子后显示)
+  rr(ctx, 8, top + 10, 64, 28, 7);
+  ctx.fillStyle = "rgba(110,80,50,.72)"; ctx.fill();
+  text(ctx, "‹ 逛老街", 40, top + 24, 12, "#FFF8E8", true, "center");
+  hitAreas.push({ x: 8, y: top + 10, w: 64, h: 28, id: "backstreet" });
   // 店前两顾客
   drawWalker(ctx, cx - 48, sy + shh + 86, "#4A6A8A", t * 2);
   drawWalker(ctx, cx + 60, sy + shh + 86, "#B85C3C", t * 2 + 1);
@@ -412,7 +462,7 @@ function draw(ctx, Core, w, h) {
   ctx.fillRect(0, 0, W, H);
   hitAreas = [];
   var t = Date.now() / 1000;
-  if (page === "street") drawYard(ctx, Core, t);
+  if (page === "street") { if (mode === "street") drawStreetView(ctx, Core, t); else drawYard(ctx, Core, t); }
   else if (page === "cards") drawCards(ctx, Core);
   else if (page === "tasks") drawTasks(ctx, Core);
   drawBottom(ctx, Core);
@@ -421,19 +471,17 @@ function draw(ctx, Core, w, h) {
 
 // ---------- 触摸处理 ----------
 function onTouchStart(x, y) {
-  touchStartY = y; touchMoved = false; touchStartT = Date.now();
+  touchStartX = x; touchStartY = y; touchMoved = false; touchStartT = Date.now();
 }
 function onTouchMove(x, y) {
-  var dy = y - touchStartY;
-  if (Math.abs(dy) > 6) touchMoved = true;
-  if (page === "street") {
-    // 找 scroll 区域
+  var dx = x - touchStartX, dy = y - touchStartY;
+  if (Math.abs(dx) > 6 || Math.abs(dy) > 6) touchMoved = true;
+  if (page === "street" && mode === "street") {
     for (var i = 0; i < hitAreas.length; i++) {
       var a = hitAreas[i];
       if (a.id === "scroll") {
-        var maxScroll = Math.max(0, a.contentH - a.viewH);
-        scrollY = Math.max(0, Math.min(maxScroll, scrollY - dy));
-        touchStartY = y;
+        scrollX = Math.max(0, Math.min(a.max, scrollX - dx));
+        touchStartX = x;
         break;
       }
     }
@@ -453,6 +501,12 @@ function onTouchEnd(x, y, Core) {
         else if (lbl === "结算 · 推进一天") Core.settle();
         else if (lbl === "广告翻倍" || lbl === "今日已用") if (!Core.S.adUsed) Core.adDouble();
       } else if (id === "special") Core.serveSpecial();
+      else if (id.indexOf("smark:") === 0) {
+        var si = parseInt(id.slice(6));
+        if (!Core.S.shops[si].on) { Core.toast("需先修建此店"); }
+        else { curShop = si; mode = "yard"; openShop = -1; scrollX = 0; }
+      }
+      else if (id === "backstreet") { mode = "street"; openShop = -1; }
       else if (id === "prev") { curShop = (curShop + Core.SHOPS.length - 1) % Core.SHOPS.length; }
       else if (id === "next") { curShop = (curShop + 1) % Core.SHOPS.length; }
       else if (id.indexOf("open:") === 0) { openShop = parseInt(id.slice(5)); }
