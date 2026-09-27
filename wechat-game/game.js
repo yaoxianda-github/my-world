@@ -23,8 +23,9 @@ function bindTouch() {
 }
 
 function main() {
-  var info = wx.getSystemInfoSync();
-  var W = info.windowWidth, H = info.windowHeight;
+  // jsbridge 未就绪时 getSystemInfoSync 可能抛错: 回退 375x667 不白屏
+  var info, W = 375, H = 667;
+  try { info = wx.getSystemInfoSync(); if (info.windowWidth) { W = info.windowWidth; H = info.windowHeight; } } catch (e) {}
   var canvas = wx.createCanvas();
   canvas.width = W;
   canvas.height = H;
